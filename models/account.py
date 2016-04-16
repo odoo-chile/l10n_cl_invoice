@@ -6,41 +6,9 @@ from openerp.exceptions import Warning
 
 
 class sii_tax_code(models.Model):
-    _name = 'account.tax.code'
-
-    def _get_parent_sii_code(self, cr, uid, ids, field_name, args, context=None):
-        r = {}
-
-        for tc in self.read(cr, uid, ids, ['sii_code', 'parent_id'], context=context):
-            _id = tc['id']
-            if tc['sii_code']:
-                r[_id] = tc['sii_code']
-            elif tc['parent_id']:
-                p_id = tc['parent_id'][0]
-                r[_id] = self._get_parent_sii_code(
-                    cr, uid, [p_id], None, None)[p_id]
-            else:
-                r[_id] = 0
-
-        return r
-
+    _inherit = 'account.tax'
 
     sii_code = new_fields.Integer('SII Code')
-    parent_sii_code = new_fields.Integer(compute='_get_parent_sii_code', type='integer', method=True, string='Parent SII Code', readonly=1)
-
-    def get_sii_name(self, cr, uid, ids, context=None):
-        r = {}
-
-        for tc in self.browse(cr, uid, ids, context=context):
-            if tc.sii_code:
-                r[tc.id] = tc.name
-            elif tc.parent_id:
-                r[tc.id] = tc.parent_id.get_sii_name()[tc.parent_id.id]
-            else:
-                r[tc.id] = False
-
-        return r
-
 
 class account_move(models.Model):
     _inherit = "account.move"
