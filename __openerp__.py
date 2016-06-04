@@ -62,6 +62,7 @@
         'views/config_view.xml',
         'views/currency_view.xml',
         'views/report_invoice.xml',
+        'views/account_tax.xml',
         'security/ir.model.access.csv',
         'security/l10n_cl_invoice_security.xml',
     ],
