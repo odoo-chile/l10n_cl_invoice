@@ -28,13 +28,15 @@ class account_invoice(models.Model):
         return document_class_id
 
     # determina el giro issuer por default
-    @api.multi
-    @api.depends('partner_id')
+    #@api.multi
+    #@api.onchange('partner_id', 'journal_id')
+    # se agrega como dependencia el diario también... veamos!!!
+    # probamos con un onchange también
     def _get_available_issuer_turns(self):
-        for rec in self:
-            available_turn_ids = rec.company_id.company_activities_ids
-            for turn in available_turn_ids:
-                rec.turn_issuer = turn.id
+        #for rec in self:
+        available_turn_ids = self.company_id.company_activities_ids
+        for turn in available_turn_ids:
+            self.turn_issuer = turn.id
 
     turn_issuer = fields.Many2one(
         'partner.activities',
@@ -68,15 +70,13 @@ class account_invoice(models.Model):
             recs = self.search([('name', operator, name)] + args, limit=limit)
         return recs.name_get()
 
-    @api.one
-    @api.depends('journal_id', 'partner_id', 'turn_issuer')
+    # api onchange en lugar de depends.. veamos!
+    @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
     def _get_available_journal_document_class(self):
         invoice_type = self.type
         document_class_ids = []
         document_class_id = False
 
-        # Lo hicimos asi porque si no podria dar errores si en el context habia
-        # un default de otra clase
         self.available_journal_document_class_ids = self.env[
             'account.journal.sii_document_class']
         if invoice_type in [
@@ -85,7 +85,8 @@ class account_invoice(models.Model):
 
             if self.use_documents:
                 letter_ids = self.get_valid_document_letters(
-                    self.partner_id.id, operation_type, self.company_id.id)
+                    self.partner_id.id, operation_type, self.company_id.id,
+                    self.turn_issuer.vat_affected, invoice_type)
 
                 domain = [
                     ('journal_id', '=', self.journal_id.id),
@@ -94,14 +95,17 @@ class account_invoice(models.Model):
                          ('sii_document_class_id.document_letter_id', '=', False)]
 
                 # If document_type in context we try to serch specific document
-                document_type = self._context.get('document_type', False)
-                if document_type:
-                    document_classes = self.env[
-                        'account.journal.sii_document_class'].search(
-                        domain + [('sii_document_class_id.document_type', '=', document_type)])
-                    if document_classes.ids:
-                        # revisar si hay condicion de exento, para poner como primera alternativa estos
-                        document_class_id = self.get_document_class_default(document_classes)
+                # document_type = self._context.get('document_type', False)
+                # en este punto document_type siempre es falso.
+                # TODO: revisar esta opcion
+                #document_type = self._context.get('document_type', False)
+                #if document_type:
+                #    document_classes = self.env[
+                #        'account.journal.sii_document_class'].search(
+                #        domain + [('sii_document_class_id.document_type', '=', document_type)])
+                #    if document_classes.ids:
+                #        # revisar si hay condicion de exento, para poner como primera alternativa estos
+                #        document_class_id = self.get_document_class_default(document_classes)
 
                 # For domain, we search all documents
                 document_classes = self.env[
@@ -113,8 +117,23 @@ class account_invoice(models.Model):
                     # revisar si hay condicion de exento, para poner como primera alternativa estos
                     # to-do: manejar más fino el documento por defecto.
                     document_class_id = self.get_document_class_default(document_classes)
+            # incorporado nuevo, para la compra
+            if operation_type == 'purchase':
+                self.available_journals = []
+
         self.available_journal_document_class_ids = document_class_ids
-        self.journal_document_class_id = document_class_id
+        if not self.journal_document_class_id.id:
+            self.journal_document_class_id = document_class_id
+
+    @api.onchange('sii_document_class_id')
+    def _check_vat(self):
+        boleta_ids = [
+            self.env.ref('l10n_cl_invoice.dc_bzf_f_dtn').id,
+            self.env.ref('l10n_cl_invoice.dc_b_f_dtm').id]
+        if self.sii_document_class_id not in boleta_ids and self.partner_id.document_number == '' or self.partner_id.document_number == '0':
+            raise Warning(_("""The customer/supplier does not have a VAT \
+defined. The type of invoicing document you selected requires you tu settle \
+a VAT."""))
 
     @api.one
     @api.depends(
@@ -137,10 +156,16 @@ class account_invoice(models.Model):
         readonly=False,
         help="Discriminate VAT on Quotations and Sale Orders?")
 
+    available_journals = fields.Many2one(
+        'account.journal',
+        compute='_get_available_journal_document_class',
+        string='Available Journals')
+
     available_journal_document_class_ids = fields.Many2many(
         'account.journal.sii_document_class',
         compute='_get_available_journal_document_class',
         string='Available Journal Document Classes')
+
     supplier_invoice_number = fields.Char(
         copy=False)
     journal_document_class_id = fields.Many2one(
@@ -258,7 +283,7 @@ class account_invoice(models.Model):
 
     def get_valid_document_letters(
             self, cr, uid, partner_id, operation_type='sale',
-            company_id=False, context=None):
+            company_id=False, vat_affected='SI', invoice_type='out_invoice', context=None):
         if context is None:
             context = {}
 
@@ -280,21 +305,51 @@ class account_invoice(models.Model):
         if operation_type == 'sale':
             issuer_responsability_id = company.partner_id.responsability_id.id
             receptor_responsability_id = partner.responsability_id.id
+            if invoice_type == 'out_invoice':
+                if vat_affected == 'SI':
+                    domain = [
+                        ('issuer_ids', '=', issuer_responsability_id),
+                        ('receptor_ids', '=', receptor_responsability_id),
+                        ('name', '!=', 'C')]
+                else:
+                    domain = [
+                        ('issuer_ids', '=', issuer_responsability_id),
+                        ('receptor_ids', '=', receptor_responsability_id),
+                        ('name', '=', 'C')]
+            else:
+                # nota de credito de ventas
+                domain = [
+                    ('issuer_ids', '=', issuer_responsability_id),
+                    ('receptor_ids', '=', receptor_responsability_id)]
         elif operation_type == 'purchase':
             issuer_responsability_id = partner.responsability_id.id
             receptor_responsability_id = company.partner_id.responsability_id.id
+            if invoice_type == 'in_invoice':
+                print('responsabilidad del partner')
+                if issuer_responsability_id == self.pool.get(
+                        'ir.model.data').get_object_reference(
+                        cr, uid, 'l10n_cl_invoice', 'res_BH')[1]:
+                    print('el proveedor es de segunda categoria y emite boleta de honorarios')
+                else:
+                    print('el proveedor es de primera categoria y emite facturas o facturas no afectas')
+                domain = [
+                    ('issuer_ids', '=', issuer_responsability_id),
+                    ('receptor_ids', '=', receptor_responsability_id)]
+            else:
+                # nota de credito de compras
+                domain = ['|',('issuer_ids', '=', issuer_responsability_id),
+                              ('receptor_ids', '=', receptor_responsability_id)]
         else:
             raise except_orm(_('Operation Type Error'),
                              _('Operation Type Must be "Sale" or "Purchase"'))
 
-        if not company.partner_id.responsability_id.id:
-            raise except_orm(_('You have not settled a tax payer type for your\
-             company.'),
-             _('Please, set your company tax payer type (in company or \
-             partner before to continue.'))
+        # TODO: fijar esto en el wizard, o llamar un wizard desde aca
+        # if not company.partner_id.responsability_id.id:
+        #     raise except_orm(_('You have not settled a tax payer type for your\
+        #      company.'),
+        #      _('Please, set your company tax payer type (in company or \
+        #      partner before to continue.'))
 
-        document_letter_ids = document_letter_obj.search(cr, uid, [(
-            'issuer_ids', 'in', issuer_responsability_id),
-            ('receptor_ids', 'in', receptor_responsability_id)],
-            context=context)
+        document_letter_ids = document_letter_obj.search(
+            cr, uid, domain, context=context)
         return document_letter_ids
