@@ -14,11 +14,11 @@
                 <xpath expr='/search/filter[2]' position="attributes">
                     <attribute name="name">purchase</attribute>
                 </xpath>
-                <xpath expr='/search/filter[3]' position="attributes">
-                    <attribute name="name">liquidity</attribute>
-                </xpath>
                 <xpath expr='/search/filter[4]' position="attributes">
                     <attribute name="name">others</attribute>
+                </xpath>
+                <xpath expr='/search/filter[3]' position="attributes">
+                    <attribute name="name">liquidity</attribute>
                 </xpath>
                 
             </field>
