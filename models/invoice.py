@@ -243,34 +243,30 @@ a VAT."""))
     ]
 
     @api.multi
-    def action_number(self):
-        obj_sequence = self.env['ir.sequence']
-
-        # We write document_number field with next invoice number by
-        # document type
+    def action_move_create(self):
         for obj_inv in self:
             invtype = obj_inv.type
-            # if we have a journal_document_class_id is beacuse we are in a
-            # company that use this function
-            # also if it has a reference number we use it (for example when
-            # cancelling for modification)
             if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
                 if invtype in ('out_invoice', 'out_refund'):
                     if not obj_inv.journal_document_class_id.sequence_id:
                         raise osv.except_osv(_('Error!'), _(
                             'Please define sequence on the journal related documents to this invoice.'))
-                    sii_document_number = obj_sequence.next_by_id(
-                        obj_inv.journal_document_class_id.sequence_id.id)
+                    sii_document_number = obj_inv.journal_document_class_id.sequence_id.next_by_id()
+                    prefix = obj_inv.journal_document_class_id.sii_document_class_id.doc_code_prefix or ''
+                    move_name = (prefix + str(sii_document_number)).replace(' ','')
+                    obj_inv.write({'move_name': move_name})
                 elif invtype in ('in_invoice', 'in_refund'):
                     sii_document_number = obj_inv.supplier_invoice_number
+        super(account_invoice, self).action_move_create()
+        for obj_inv in self:
+            invtype = obj_inv.type
+            if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
                 obj_inv.write({'sii_document_number': sii_document_number})
-                document_class_id = obj_inv.journal_document_class_id.sii_document_class_id.id
-                obj_inv.move_id.write(
-                    {'document_class_id': document_class_id,
-                     'sii_document_number': self.sii_document_number})
-        res = super(account_invoice, self).action_number()
-
-        return res
+            document_class_id = obj_inv.journal_document_class_id.sii_document_class_id.id
+            obj_inv.move_id.write(
+                {'document_class_id': document_class_id,
+                'sii_document_number': self.sii_document_number})
+        return True
 
     def get_operation_type(self, cr, uid, invoice_type, context=None):
         if invoice_type in ['in_invoice', 'in_refund']:
