@@ -94,10 +94,10 @@
                     <attribute name="options">{'no_create': True}</attribute>
                 </field>
 
-                <label string="Draft Refund" position="after">
+                <xpath expr="//form/sheet/h1/label[1]" position="after">
                         <label string="- Next Number: " attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
                         <field name="next_invoice_number" attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
-                </label>
+                </xpath>
 
             </field>
         </record>
