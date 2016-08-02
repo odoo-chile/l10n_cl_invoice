@@ -51,23 +51,41 @@
                     <field name="sii_document_number" invisible="1"/>
                     <field name="move_name" invisible="1"/>
                 </form>
-
+                <field name="team_id" position="after">
+                  <field name="forma_pago" />
+                  <field name="contact_id" domain="[('parent_id','=',partner_id)]" />
+                </field>
                 <field name="partner_bank_id" position="before">
                     <field name="vat_discriminated"/>
                 </field>
 
-                <field name="fiscal_position_id" position="after">
-                    <field name="reference"/>
+                <field name="origin" position="replace">
+                    <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}"/>
                 </field>
 
-                <!-- already invisible, posible deprecated
-                <xpath expr="//page[@string='Other Info']//field[@name='name']" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
-                -->
+                <field name="tax_line_ids" position="before">
+                    <field name="referencias" mode="tree">
+                      <form>
+                        <group>
+                          <field name="origen" required="True"/>
+                          <field name="sii_referencia_TpoDocRef" required="True" />
+                          <field name="sii_referencia_CodRef"/>
+                          <field name="motivo"/>
+                        </group>
+                      </form>
+                      <tree>
+                        <field name="origen" required="True"/>
+                        <field name="sii_referencia_TpoDocRef" required="True" />
+                        <field name="sii_referencia_CodRef"/>
+                        <field name="motivo"/>
+                      </tree>
+                    </field>
+                </field>
+                
                 <field name="number" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </field>
+
                 <field name="number" position="after">
                     <field name="document_number" class="oe_inline"/>
                 </field>

@@ -196,6 +196,12 @@ a VAT."""))
     formated_vat = fields.Char(
         string='Responsability',
         related='commercial_partner_id.formated_vat',)
+    sii_referencia_CodRef = fields.Selection(
+        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
+        string="SII Reference Code")
+    sii_referencia_TpoDocRef =  fields.Selection(
+        [('52','Orden de Compra'),('52','Guía de Despacho Electrónica'),('54','Guía de Despacho'),('33','Factura Electrónica'),('34','Factura Electrónica Exenta'),('46','Factura de compra Electrónica'),('61','Nota de Crédito Electrónica'),('56','Nota de Débito Electrónica')],
+        string="SII Reference Document Type")
 
     @api.one
     @api.depends('sii_document_number', 'number')
@@ -220,6 +226,10 @@ a VAT."""))
         related='journal_id.use_documents',
         string='Use Documents?',
         readonly=True)
+    referencias = fields.One2many('account.invoice.referencias','invoice_id', readonly=True, states={'draft': [('readonly', False)]},)
+    forma_pago = fields.Selection([('1','Contado'),('2','Crédito'),('3','Gratuito')],string="Forma de pago", readonly=True, states={'draft': [('readonly', False)]},
+                    default='1')
+    contact_id = fields.Many2one('res.partner', string="Contacto")
 
     @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
@@ -350,3 +360,52 @@ a VAT."""))
         document_letter_ids = document_letter_obj.search(
             cr, uid, domain, context=context)
         return document_letter_ids
+class Referencias(models.Model):
+    _name = 'account.invoice.referencias'
+
+    origen = fields.Char(string="Origin")
+    sii_referencia_TpoDocRef =  fields.Selection(
+        [('801','Orden de Compra'),
+        ('30','Factura'),
+        ('32',' Factura de venta bienes y servicios no afectos o exentos de IVA'),
+        ('35',' Boleta'),
+        ('35',' Boleta'),
+        ('38',' Boleta exenta'),
+        ('45',' Factura de compra'),
+        ('55',' Nota de débito'),
+        ('60',' Nota de crédito'),
+        ('103','Liquidación'),
+        ('40','Liquidación Factura'),
+        ('43','Liquidación-Factura Electrónica'),
+        ('33','Factura Electrónica'),
+        ('34','Factura No Afecta o Exenta Electrónica'),
+        ('39','Boleta Electrónica'),
+        ('41','Boleta Exenta Electrónica'),
+        ('46','Factura de Compra Electrónica.'),
+        ('56','Nota de Débito Electrónica'),
+        ('61','Nota de Crédito Electrónica'),
+        ('50','Guía de Despacho.'),
+        ('52','Guía de Despacho Electrónica'),
+        ('110','Factura de Exportación Electrónica'),
+        ('111','Nota de Débito de Exportación Electrónica'),
+        ('112','Nota de Crédito de Exportación Electrónica'),
+        ('802','Nota de pedido'),
+        ('803','Contrato'),
+        ('804','Resolución'),
+        ('805','Proceso ChileCompra'),
+        ('806','Ficha ChileCompra'),
+        ('807','DUS'),
+        ('808','B/L (Conocimiento de embarque)'),
+        ('809','AWB (Air Will Bill)'),
+        ('810','MIC/DTA'),
+        ('811','Carta de Porte'),
+        ('812','Resolución del SNA donde califica Servicios de Exportación'),
+        ('813','Pasaporte'),
+        ('814','Certificado de Depósito Bolsa Prod. Chile.'),
+        ('815','Vale de Prenda Bolsa Prod. Chile')],
+        string="SII Reference Document Type")
+    sii_referencia_CodRef = fields.Selection(
+        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
+        string="SII Reference Code")
+    motivo = fields.Char(string="Motivo")
+    invoice_id = fields.Many2one('account.invoice', ondelete='cascade',index=True,copy=False,string="Documento")
