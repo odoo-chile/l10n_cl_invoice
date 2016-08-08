@@ -28,3 +28,4 @@ dc_b_f_dte,True,dl_b,39,True,BEL,invoice,BEL ,Boleta Electrónica,BEL
 dc_b_e_dte,True,dl_b,41,True,BXE,invoice,BXE ,Boleta Exenta Electrónica,BXE
 dc_m_f_dtn,True,dl_m,70,False,BHO ,invoice,BHO ,Boleta de Honorarios,BHO
 dc_m_d_dtn,True,dl_m,71,True,BHE ,invoice,BHE ,Boleta de Honorarios Electrónica,BHE
+c_g_nvt,True,dl_g,999,False,NVT	,invoice,NVT ,Nota de Venta,TARJ
