@@ -13,10 +13,17 @@
                     <!-- <field name="document_class_id" attrs="{'invisible':[('document_class_id','=',False)]}"/> -->
                     <field name="document_class_id"/>
                     <field name="sii_document_number"/>
+                    <field name="canceled" />
+                    <field name="no_rec_code" />
+                    <field name="iva_uso_comun" />
+                    <field name="factor_proporcionalidad" attrs="{'invisible':[('iva_uso_comun','=',False)], 'required':[('iva_uso_comun','=',True)]}"/>
                 </field>
 <!--                 <field name="ref" position="attributes">
                     <attribute name="attrs">{'readonly':[('document_class_id','!=',False)]}</attribute>
                 </field> -->
+                <field name="state" position="before">
+                  <field name="sended" />
+                </field>
             </field>
         </record>
 
@@ -27,7 +34,10 @@
             <field name="arch" type="xml">
                 <field name="name" position="after">
                     <field name="document_class_id"/>
-                    <field name="document_number"/>
+                    <field name="sii_document_number"/>
+                </field>
+                <field name="state" position="before">
+                  <field name="sended" />
                 </field>
             </field>
         </record>
