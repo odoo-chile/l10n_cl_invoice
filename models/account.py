@@ -9,6 +9,8 @@ class sii_tax_code(models.Model):
     _inherit = 'account.tax'
 
     sii_code = new_fields.Integer('SII Code')
+    sii_type = new_fields.Selection([ ('A','Anticipado'),('R','Retención')], string="Tipo de impuesto para el SII")
+    retencion = new_fields.Float(string="Valor retención", default=0.00)
 
 class account_move(models.Model):
     _inherit = "account.move"
@@ -24,16 +26,6 @@ class account_move(models.Model):
             res[record.id] = document_number
         return res
 
-    document_class_id = new_fields.Many2one(
-        'sii.document_class',
-        'Document Type',
-        copy=False,
-        # readonly=True
-    )
-    sii_document_number = new_fields.Char(
-        string='Document Number',
-        copy=False,)
-
     @api.one
     @api.depends(
         'sii_document_number',
@@ -43,18 +35,39 @@ class account_move(models.Model):
         )
     def _get_document_number(self):
         if self.sii_document_number and self.document_class_id:
-            document_number = (self.document_class_id.doc_code_prefix or '') + \
-                self.sii_document_number
+            document_number = (self.document_class_id.doc_code_prefix or '') + self.sii_document_number
         else:
             document_number = self.name
         self.document_number = document_number
 
+    document_class_id = new_fields.Many2one(
+        'sii.document_class',
+        'Document Type',
+        copy=False,
+        readonly=True, states={'draft': [('readonly', False)]}
+    )
+    sii_document_number = new_fields.Char(
+        string='Document Number',
+        copy=False,readonly=True, states={'draft': [('readonly', False)]})
+
+    canceled = new_fields.Boolean(string="Canceled?", readonly=True, states={'draft': [('readonly', False)]})
+    iva_uso_comun = new_fields.Boolean(string="Iva Uso Común", readonly=True, states={'draft': [('readonly', False)]})
+    no_rec_code = new_fields.Selection([
+                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('2','Facturas de proveedores registrados fuera de plazo.'),
+                    ('3','Gastos rechazados.'),
+                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                    ('9','Otros.')],
+                    string="Código No recuperable",
+                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
+
     document_number = new_fields.Char(
         compute='_get_document_number',
         string='Document Number',
-        readonly=True,
-        store=True
-        )
+        store=True,
+        readonly=True, states={'draft': [('readonly', False)]})
+    sended = new_fields.Boolean(string="Enviado al SII", default=False,readonly=True, states={'draft': [('readonly', False)]})
+    factor_proporcionalidad = new_fields.Float(string="Factor proporcionalidad", default=0.00, readonly=True, states={'draft': [('readonly', False)]})
 
 
 class account_move_line(models.Model):
@@ -73,7 +86,6 @@ class account_move_line(models.Model):
         store=True,
         readonly=True,
         )
-
 
 class account_journal_sii_document_class(models.Model):
     _name = "account.journal.sii_document_class"
