@@ -29,6 +29,8 @@ class res_partner(models.Model):
     tp_sii_code = fields.Char('Tax Payer SII Code', compute='_get_tp_sii_code',
         readonly=True)
 
+    _sql_constraints = [('unique_document_number','unique(document_number)','Document number must be unique')]
+
     @api.multi
     @api.onchange('responsability_id')
     def _get_tp_sii_code(self):
