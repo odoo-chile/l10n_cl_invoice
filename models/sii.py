@@ -54,6 +54,7 @@ class sii_document_class(models.Model):
             ('invoice_in', 'Purchase Invoices'),
             ('debit_note', 'Debit Notes'),
             ('credit_note', 'Credit Notes'),
+            ('stock_picking', 'Stock Picking'),
             ('other_document', 'Other Documents')
         ],
         string='Document Type',
@@ -63,7 +64,7 @@ class sii_document_class(models.Model):
         'Active', default=True)
     dte = fields.Boolean(
         'DTE', required=True)
-    
+
 
 class sii_document_letter(models.Model):
     _name = 'sii.document_letter'
