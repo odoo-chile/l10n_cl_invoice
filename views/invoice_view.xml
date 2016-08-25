@@ -166,6 +166,12 @@
                     <attribute name="string">Giro de compra</attribute>
                     <attribute name="help">Indique a cuál giro de la compañía se asigna esta compra</attribute>
                 </field>
+                <xpath expr="//notebook/page/group/group" position="inside">
+                  <group string="Tratamiento del IVA">
+                    <field name="no_rec_code" />
+                    <field name="iva_uso_comun" />
+                  </group>
+                </xpath>
             </field>
         </record>
 

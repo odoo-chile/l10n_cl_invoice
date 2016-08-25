@@ -196,6 +196,15 @@ a VAT."""))
     formated_vat = fields.Char(
         string='Responsability',
         related='commercial_partner_id.formated_vat',)
+    iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
+    no_rec_code = fields.Selection([
+                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('2','Facturas de proveedores registrados fuera de plazo.'),
+                    ('3','Gastos rechazados.'),
+                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                    ('9','Otros.')],
+                    string="Código No recuperable",
+                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
     sii_referencia_CodRef = fields.Selection(
         [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
         string="SII Reference Code")
