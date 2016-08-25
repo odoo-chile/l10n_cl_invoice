@@ -28,7 +28,7 @@
                     <field name="reference"/>
                 </field>
                 <field name="origin" position="attributes">
-                    <attribute name="invisible">1</attribute>
+                    <attribute name="invisible">0</attribute>
                 </field>
                 <field name="number" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -45,6 +45,9 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+               <xpath expr="//page/field[@name='invoice_line_ids']/tree/field[@name='product_id']" position="after">
+                 <field name="name" />
+               </xpath>
                 <form>
                     <field name="available_journal_document_class_ids" invisible="1"/>
                     <field name="use_documents" invisible="1"/>
@@ -60,7 +63,7 @@
                 </field>
 
                 <field name="origin" position="replace">
-                    <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                    <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}" />
                 </field>
 
                 <field name="tax_line_ids" position="before">
@@ -71,6 +74,7 @@
                           <field name="sii_referencia_TpoDocRef" required="True" />
                           <field name="sii_referencia_CodRef"/>
                           <field name="motivo"/>
+                          <field name="fecha_documento"/>
                         </group>
                       </form>
                       <tree>
@@ -78,10 +82,15 @@
                         <field name="sii_referencia_TpoDocRef" required="True" />
                         <field name="sii_referencia_CodRef"/>
                         <field name="motivo"/>
+                        <field name="fecha_documento"/>
                       </tree>
                     </field>
                 </field>
-                
+
+                <field name='name' position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+
                 <field name="number" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </field>
