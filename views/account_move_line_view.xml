@@ -21,9 +21,10 @@
             <field name="model">account.move.line</field>
             <field name="inherit_id" ref="account.view_account_move_line_filter"/>
             <field name="arch" type="xml">
-                <group string="Group By">
+                <xpath expr='/search/group[1]' position="inside">
                     <filter string="Document Class" domain="[]" context="{'group_by':'document_class_id'}"/>
-                </group>
+                    <filter string="Enviado al SII" domain="[]" context="{'group_by':'sended'}"/>
+                </xpath>
             </field>
         </record>
     </data>

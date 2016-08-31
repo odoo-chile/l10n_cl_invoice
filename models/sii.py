@@ -54,6 +54,7 @@ class sii_document_class(models.Model):
             ('invoice_in', 'Purchase Invoices'),
             ('debit_note', 'Debit Notes'),
             ('credit_note', 'Credit Notes'),
+            ('stock_picking', 'Stock Picking'),
             ('other_document', 'Other Documents')
         ],
         string='Document Type',
@@ -63,7 +64,7 @@ class sii_document_class(models.Model):
         'Active', default=True)
     dte = fields.Boolean(
         'DTE', required=True)
-    
+
 
 class sii_document_letter(models.Model):
     _name = 'sii.document_letter'
@@ -96,6 +97,7 @@ class sii_responsability(models.Model):
         'Name', size=64, required=True)
     code = fields.Char(
         'Code', size=8, required=True)
+    tp_sii_code = fields.Integer('Tax Payer SII Code', required=True)
     active = fields.Boolean(
         'Active', default=True)
     issued_letter_ids = fields.Many2many(
