@@ -28,7 +28,7 @@
                     <field name="reference"/>
                 </field>
                 <field name="origin" position="attributes">
-                    <attribute name="invisible">1</attribute>
+                    <attribute name="invisible">0</attribute>
                 </field>
                 <field name="number" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -45,29 +45,56 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+               <xpath expr="//page/field[@name='invoice_line_ids']/tree/field[@name='product_id']" position="after">
+                 <field name="name" />
+               </xpath>
                 <form>
                     <field name="available_journal_document_class_ids" invisible="1"/>
                     <field name="use_documents" invisible="1"/>
                     <field name="sii_document_number" invisible="1"/>
                     <field name="move_name" invisible="1"/>
                 </form>
-
+                <field name="team_id" position="after">
+                  <field name="forma_pago" />
+                  <field name="contact_id" domain="[('parent_id','=',partner_id)]" />
+                </field>
                 <field name="partner_bank_id" position="before">
                     <field name="vat_discriminated"/>
                 </field>
 
-                <field name="fiscal_position_id" position="after">
-                    <field name="reference"/>
+                <field name="origin" position="replace">
+                    <field name="origin" attrs="{'readonly':[('state','not in',['draft'])]}" />
                 </field>
 
-                <!-- already invisible, posible deprecated
-                <xpath expr="//page[@string='Other Info']//field[@name='name']" position="attributes">
+                <field name="tax_line_ids" position="before">
+                    <field name="referencias" mode="tree">
+                      <form>
+                        <group>
+                          <field name="origen" required="True"/>
+                          <field name="sii_referencia_TpoDocRef" required="True" />
+                          <field name="sii_referencia_CodRef"/>
+                          <field name="motivo"/>
+                          <field name="fecha_documento"/>
+                        </group>
+                      </form>
+                      <tree>
+                        <field name="origen" required="True"/>
+                        <field name="sii_referencia_TpoDocRef" required="True" />
+                        <field name="sii_referencia_CodRef"/>
+                        <field name="motivo"/>
+                        <field name="fecha_documento"/>
+                      </tree>
+                    </field>
+                </field>
+
+                <field name='name' position="attributes">
                     <attribute name="invisible">1</attribute>
-                </xpath>
-                -->
+                </field>
+
                 <field name="number" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </field>
+
                 <field name="number" position="after">
                     <field name="document_number" class="oe_inline"/>
                 </field>
@@ -94,10 +121,10 @@
                     <attribute name="options">{'no_create': True}</attribute>
                 </field>
 
-                <label string="Draft Refund" position="after">
+                <xpath expr="//form/sheet/h1/label[1]" position="after">
                         <label string="- Next Number: " attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
                         <field name="next_invoice_number" attrs="{'invisible': ['|',('document_number','!=',False),('state','!=','draft')]}" class="oe_inline"/>
-                </label>
+                </xpath>
 
             </field>
         </record>
@@ -148,6 +175,12 @@
                     <attribute name="string">Giro de compra</attribute>
                     <attribute name="help">Indique a cuál giro de la compañía se asigna esta compra</attribute>
                 </field>
+                <xpath expr="//notebook/page/group/group" position="inside">
+                  <group string="Tratamiento del IVA">
+                    <field name="no_rec_code" />
+                    <field name="iva_uso_comun" />
+                  </group>
+                </xpath>
             </field>
         </record>
 

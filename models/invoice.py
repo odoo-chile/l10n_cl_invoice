@@ -8,6 +8,8 @@ import openerp.addons.decimal_precision as dp
 # (solo para debug)
 # frameinfo = getframeinfo(currentframe())
 # print(frameinfo.filename, frameinfo.lineno)
+import logging
+_logger = logging.getLogger(__name__)
 
 class account_invoice(models.Model):
     _inherit = "account.invoice"
@@ -27,22 +29,13 @@ class account_invoice(models.Model):
             document_class_id = document_classes.ids[0]
         return document_class_id
 
-    # determina el giro issuer por default
-    #@api.multi
-    #@api.onchange('partner_id', 'journal_id')
-    # se agrega como dependencia el diario también... veamos!!!
-    # probamos con un onchange también
-    def _get_available_issuer_turns(self):
-        #for rec in self:
-        available_turn_ids = self.company_id.company_activities_ids
-        for turn in available_turn_ids:
-            self.turn_issuer = turn.id
-
-    turn_issuer = fields.Many2one(
-        'partner.activities',
-        'Giro Emisor', readonly=True, store=True, required=False,
-        states={'draft': [('readonly', False)]},
-        compute=_get_available_issuer_turns)
+    @api.onchange('journal_id', 'company_id')
+    def _set_available_issuer_turns(self):
+        for rec in self:
+            if rec.company_id:
+                available_turn_ids = rec.company_id.company_activities_ids
+                for turn in available_turn_ids:
+                    rec.turn_issuer = turn
 
 
     @api.multi
@@ -70,7 +63,6 @@ class account_invoice(models.Model):
             recs = self.search([('name', operator, name)] + args, limit=limit)
         return recs.name_get()
 
-    # api onchange en lugar de depends.. veamos!
     @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
     def _get_available_journal_document_class(self):
         for inv in self:
@@ -123,7 +115,7 @@ class account_invoice(models.Model):
                     inv.available_journals = []
 
             inv.available_journal_document_class_ids = document_class_ids
-            if not inv.journal_document_class_id.id:
+            if not inv.journal_document_class_id:
                 inv.journal_document_class_id = document_class_id
 
     @api.onchange('sii_document_class_id')
@@ -150,6 +142,22 @@ a VAT."""))
             vat_discriminated = True
         self.vat_discriminated = vat_discriminated
 
+    @api.one
+    @api.depends('sii_document_number', 'number')
+    def _get_document_number(self):
+        if self.sii_document_number and self.sii_document_class_id:
+            document_number = (
+                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
+        else:
+            document_number = self.number
+        self.document_number = document_number
+
+    turn_issuer = fields.Many2one(
+        'partner.activities',
+        'Giro Emisor', readonly=True, store=True, required=False,
+        states={'draft': [('readonly', False)]},
+        )
+
     vat_discriminated = fields.Boolean(
         'Discriminate VAT?',
         compute="get_vat_discriminated",
@@ -172,7 +180,7 @@ a VAT."""))
     journal_document_class_id = fields.Many2one(
         'account.journal.sii_document_class',
         'Documents Type',
-        compute="_get_available_journal_document_class",
+        default=_get_available_journal_document_class,
         readonly=True,
         store=True,
         states={'draft': [('readonly', False)]})
@@ -196,16 +204,15 @@ a VAT."""))
     formated_vat = fields.Char(
         string='Responsability',
         related='commercial_partner_id.formated_vat',)
-
-    @api.one
-    @api.depends('sii_document_number', 'number')
-    def _get_document_number(self):
-        if self.sii_document_number and self.sii_document_class_id:
-            document_number = (
-                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
-        else:
-            document_number = self.number
-        self.document_number = document_number
+    iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
+    no_rec_code = fields.Selection([
+                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('2','Facturas de proveedores registrados fuera de plazo.'),
+                    ('3','Gastos rechazados.'),
+                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                    ('9','Otros.')],
+                    string="Código No recuperable",
+                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
         compute='_get_document_number',
@@ -220,6 +227,10 @@ a VAT."""))
         related='journal_id.use_documents',
         string='Use Documents?',
         readonly=True)
+    referencias = fields.One2many('account.invoice.referencias','invoice_id', readonly=True, states={'draft': [('readonly', False)]})
+    forma_pago = fields.Selection([('1','Contado'),('2','Crédito'),('3','Gratuito')],string="Forma de pago", readonly=True, states={'draft': [('readonly', False)]},
+                    default='1')
+    contact_id = fields.Many2one('res.partner', string="Contacto")
 
     @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
@@ -263,10 +274,12 @@ a VAT."""))
             invtype = obj_inv.type
             if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
                 obj_inv.write({'sii_document_number': sii_document_number})
-            document_class_id = obj_inv.journal_document_class_id.sii_document_class_id.id
-            obj_inv.move_id.write(
-                {'document_class_id': document_class_id,
-                'sii_document_number': self.sii_document_number})
+            document_class_id = obj_inv.sii_document_class_id.id
+            guardar = {'document_class_id': document_class_id,
+                'sii_document_number': obj_inv.sii_document_number,
+                'no_rec_code':obj_inv.no_rec_code,
+                'iva_uso_comun':obj_inv.iva_uso_comun,}
+            obj_inv.move_id.write(guardar)
         return True
 
     def get_operation_type(self, cr, uid, invoice_type, context=None):
@@ -350,3 +363,16 @@ a VAT."""))
         document_letter_ids = document_letter_obj.search(
             cr, uid, domain, context=context)
         return document_letter_ids
+
+class Referencias(models.Model):
+    _name = 'account.invoice.referencias'
+
+    origen = fields.Char(string="Origin")
+    sii_referencia_TpoDocRef =  fields.Many2one('sii.document_class',
+        string="SII Reference Document Type")
+    sii_referencia_CodRef = fields.Selection(
+        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
+        string="SII Reference Code")
+    motivo = fields.Char(string="Motivo")
+    invoice_id = fields.Many2one('account.invoice', ondelete='cascade',index=True,copy=False,string="Documento")
+    fecha_documento = fields.Date(string="Fecha Documento", required=True)

@@ -7,11 +7,13 @@
         <field name="arch" type="xml">
             <field name="name" position="before">
                 <field name="sii_code" />
+                <field name="sii_type" />
+                <field name="retencion" attrs="{'required':[('sii_type','in',['R'])], 'invisible':[('sii_type','=',False)]}" />
             </field>
 
         </field>
     </record>
-        
+
     <record id="view_tax_sii_code_tree" model="ir.ui.view">
         <field name="name">account.tax.sii.code.tree</field>
         <field name="model">account.tax</field>
@@ -19,6 +21,7 @@
         <field name="arch" type="xml">
             <field name="name" position="before">
                 <field name="sii_code" />
+                <field name="sii_type" />
             </field>
         </field>
     </record>
