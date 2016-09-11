@@ -11,8 +11,66 @@ import openerp.addons.decimal_precision as dp
 import logging
 _logger = logging.getLogger(__name__)
 
+class AccountInvoiceLine(models.Model):
+    _inherit = 'account.invoice.line'
+
+    @api.one
+    @api.depends('price_unit', 'discount', 'invoice_line_tax_ids', 'quantity',
+        'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id', 'invoice_id.company_id')
+    def _compute_price(self):
+        super(AccountInvoiceLine,self)._compute_price()
+        currency = self.invoice_id and self.invoice_id.currency_id or None
+        price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
+        taxes = False
+        if self.invoice_line_tax_ids.price_include:
+            taxes = self.invoice_line_tax_ids.compute_all(price, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id)
+        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > self.quantity * price) else self.quantity * price
+
+    price_tax_included = fields.Monetary(string='Amount', readonly=True, compute='_compute_price')
+
+class AccountInvoiceTax(models.Model):
+    _inherit = "account.invoice.tax"
+
+    def _compute_base_amount(self):
+        for tax in self:
+            if tax.tax_id.price_include:
+                base = 0.0
+                for line in tax.invoice_id.invoice_line_ids:
+                    if tax.tax_id in line.invoice_line_tax_ids:
+                        base += (line.price_tax_included / (1 + tax.tax_id.amount / 100)) # valor sin redondeo
+                        base += sum((line.invoice_line_tax_ids.filtered(lambda t: t.include_base_amount) - tax.tax_id).mapped('amount'))
+                tax.base = tax.invoice_id.currency_id.round(base)# se redondea global
+            else:
+                super(AccountInvoiceTax,tax)._compute_base_amount()
+
 class account_invoice(models.Model):
     _inherit = "account.invoice"
+
+    def _compute_amount(self):
+        for inv in self:
+            currency = inv.currency_id or None
+            amount_total = 0
+            for line in inv.invoice_line_ids:
+                price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(price, currency, line.quantity, product=line.product_id, partner=inv.partner_id)
+                if taxes and taxes['total_included'] > 0:
+                    amount_total += taxes['total_included']
+                else:
+                    amount_total += line.price_tax_included
+
+            inv.amount_tax = sum(line.amount for line in inv.tax_line_ids)
+            inv.amount_untaxed = currency.round(amount_total - inv.amount_tax)
+            inv.amount_total = inv.amount_untaxed + inv.amount_tax
+            amount_total_company_signed = inv.amount_total
+            amount_untaxed_signed = inv.amount_untaxed
+            if inv.currency_id and inv.currency_id != inv.company_id.currency_id:
+                amount_total_company_signed = inv.currency_id.compute(inv.amount_total, inv.company_id.currency_id)
+                amount_untaxed_signed = inv.currency_id.compute(inv.amount_untaxed, inv.company_id.currency_id)
+            sign = inv.type in ['in_refund', 'out_refund'] and -1 or 1
+            inv.amount_total_company_signed = amount_total_company_signed * sign
+            inv.amount_total_signed = inv.amount_total * sign
+            inv.amount_untaxed_signed = amount_untaxed_signed * sign
+
 
     def get_document_class_default(self, document_classes):
         if self.turn_issuer.vat_affected not in ['SI', 'ND']:
