@@ -1,4 +1,3 @@
-
 Incluye:
 
   - Configuración de libros, diarios y otros detalles para facturación chilena.
