@@ -56,9 +56,7 @@
                     <field name="forma_pago" />
                     <field name="contact_id" domain="[('parent_id','=',partner_id)]" />
                 </form>
-                <!-- <field name="team_id" position="after">-->
-                <!-- se comenta porque no en todas las configuraciones está disponible el team_id -->
-                <!--</field>-->
+
                 <field name="partner_bank_id" position="before">
                     <field name="vat_discriminated"/>
                 </field>
