@@ -95,7 +95,6 @@ class account_invoice(models.Model):
                 for turn in available_turn_ids:
                     rec.turn_issuer = turn
 
-
     @api.multi
     def name_get(self):
         TYPES = {
@@ -157,6 +156,10 @@ class account_invoice(models.Model):
                     #    if document_classes.ids:
                     #        # revisar si hay condicion de exento, para poner como primera alternativa estos
                     #        document_class_id = self.get_document_class_default(document_classes)
+                    if invoice_type  in [ 'in_refund', 'out_refund']:
+                        domain += [('sii_document_class_id.document_type','in',['debit_note','credit_note'] )]
+                    else:
+                        domain += [('sii_document_class_id.document_type','in',['invoice','invoice_in'] )]
 
                     # For domain, we search all documents
                     document_classes = self.env[
