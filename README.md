@@ -1,4 +1,3 @@
-
 Incluye:
 
   - Configuración de libros, diarios y otros detalles para facturación chilena.
@@ -58,4 +57,3 @@ También permite registrar en Odoo los comprobantes de documentos electrónicos 
 <img alt="Logo BMYA" src="http://crm.blancomartin.cl/index.php?entryPoint=image&name=c82ab43f-e8dd-b2fa-25ff-56017f69d116" />
 </p>
 **Blanco Martin & Asociados EIRL** - http://blancomartin.cl
-

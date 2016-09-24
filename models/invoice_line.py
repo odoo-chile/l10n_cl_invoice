@@ -12,12 +12,6 @@ import openerp.addons.decimal_precision as dp
 
 class account_invoice_line(models.Model):
 
-    """
-    En Chile como no se discriminan los impuestos en las facturas, excepto el IVA,
-    agrego campos que ignoran el iva solamente a la hora de imprimir los valores.
-    (excepción: liquidación factura)
-    """
-
     _inherit = "account.invoice.line"
 
     def _printed_prices(self, cr, uid, ids, name, args, context=None):
@@ -81,6 +75,24 @@ class account_invoice_line(models.Model):
             }
         return res
 
+        # @api.one
+        # @api.depends('price_unit', 'discount', 'tax_id', 'quantity',
+        #     'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id',
+        #     'invoice_id.company_id')
+        # def _compute_price(self):
+        #     super(AccountInvoiceLine,self)._compute_price()
+        #     currency = self.invoice_id and self.invoice_id.currency_id or None
+        #     price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
+        #     taxes = False
+        #     if self.tax_id.price_include:
+        #         taxes = self.tax_id.compute_all(
+        #             price, currency, self.quantity, product=self.product_id,
+        #             partner=self.invoice_id.partner_id)
+        #     self.price_tax_included = taxes['total_included'] if (
+        #         taxes and taxes['total_included'] > self.quantity * price) \
+        #         else self.quantity * price
+
+
     _columns = {
         'printed_price_unit': old_fields.function(
             _printed_prices, type='float',
@@ -107,3 +119,5 @@ class account_invoice_line(models.Model):
             digits_compute=dp.get_precision('Account'),
             string='Exempt Amount', multi='printed'),
     }
+    price_tax_included = fields.Float(
+        string='Amount', readonly=True, compute='_compute_price')

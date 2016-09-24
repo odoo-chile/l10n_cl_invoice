@@ -5,13 +5,129 @@ from openerp import api, models, _
 from openerp.exceptions import Warning
 
 
+class siiTaxCode(models.Model):
+    _inherit = 'account.tax'
+
+    sii_code = new_fields.Integer('SII Code')
+    sii_type = new_fields.Selection([
+        ('A','Anticipado'),
+        ('R','Retención')], string="Tipo de impuesto para el SII")
+    retencion = new_fields.Float(string="Valor retención", default=0.00)
+
+    @api.v8
+    def compute_all(
+            self, price_unit, currency=None, quantity=1.0, product=None,
+            partner=None):
+        """
+        Returns all information required to apply taxes (in self + their
+        children in case of a tax goup).
+        We consider the sequence of the parent for group of taxes.
+        Eg. considering letters as taxes and alphabetic order as sequence :
+        [G, B([A, D, F]), E, C] will be computed as [A, D, F, C, E, G]
+        RETURN: {
+            'total_excluded': 0.0,    # Total without taxes
+            'total_included': 0.0,    # Total with taxes
+            'taxes': [{# One dict for each tax in self and their children
+                'id': int,
+                'name': str,
+                'amount': float,
+                'sequence': int,
+                'account_id': int,
+                'refund_account_id': int,
+                'analytic': boolean,
+            }]
+        } """
+        if len(self) == 0:
+            company_id = self.env.user.company_id
+        else:
+            company_id = self[0].company_id
+        if not currency:
+            currency = company_id.currency_id
+        taxes = []
+        # By default, for each tax, tax amount will first be computed
+        # and rounded at the 'Account' decimal precision for each
+        # PO/SO/invoice line and then these rounded amounts will be
+        # summed, leading to the total amount for that tax. But, if the
+        # company has tax_calculation_rounding_method = round_globally,
+        # we still follow the same method, but we use a much larger
+        # precision when we round the tax amount for each line (we use
+        # the 'Account' decimal precision + 5), and that way it's like
+        # rounding after the sum of the tax amounts of each line
+        raise Warning('currency: {}'.format(currency))
+        prec = currency.decimal_places
+
+        total_excluded = total_included = base = round(
+            price_unit * quantity, prec)
+
+        if company_id.tax_calculation_rounding_method == 'round_globally' \
+                or not bool(self.env.context.get("round", True)):
+            prec += 5
+
+        # Sorting key is mandatory in this case. When no key is provided,
+        # sorted() will perform a
+        # search. However, the search method is overridden in account.tax in
+        # order to add a domain
+        # depending on the context. This domain might filter out some taxes
+        # from self, e.g. in the
+        # case of group taxes.
+        for tax in self.sorted(key=lambda r: r.sequence):
+            if tax.amount_type == 'group':
+                ret = tax.children_tax_ids.compute_all(
+                    price_unit, currency, quantity, product, partner)
+                total_excluded = ret['total_excluded']
+                base = ret['base']
+                total_included = ret['total_included']
+                tax_amount = total_included - total_excluded
+                taxes += ret['taxes']
+                continue
+
+            tax_amount = tax._compute_amount(
+                base, price_unit, quantity, product, partner)
+            if company_id.tax_calculation_rounding_method == 'round_globally' \
+                    or not bool(
+                    self.env.context.get("round", True)):
+                tax_amount = round(tax_amount, prec)
+            else:
+                tax_amount = currency.round(tax_amount)
+
+            if tax.price_include:
+                total_excluded -= tax_amount
+                base -= tax_amount
+            else:
+                total_included += tax_amount
+
+            if tax.include_base_amount:
+                base += tax_amount
+
+            taxes.append({
+                'id': tax.id,
+                'name': tax.with_context(
+                    **{'lang': partner.lang} if partner else {}).name,
+                'amount': tax_amount,
+                'sequence': tax.sequence,
+                'account_id': tax.account_id.id,
+                'refund_account_id': tax.refund_account_id.id,
+                'analytic': tax.analytic,
+            })
+
+        return {
+            'taxes': sorted(taxes, key=lambda k: k['sequence']),
+            'total_excluded': currency.round(total_excluded) if bool(
+                self.env.context.get("round", True)) else total_excluded,
+            'total_included': currency.round(total_included) if bool(
+                self.env.context.get("round", True)) else total_included,
+            'base': base}
+
+
 class sii_tax_code(models.Model):
     _inherit = 'account.tax.code'
 
-    def _get_parent_sii_code(self, cr, uid, ids, field_name, args, context=None):
+    def _get_parent_sii_code(
+            self, cr, uid, ids, field_name, args, context=None):
         r = {}
 
-        for tc in self.read(cr, uid, ids, ['sii_code', 'parent_id'], context=context):
+        for tc in self.read(
+                cr, uid, ids, ['sii_code', 'parent_id'], context=context):
             _id = tc['id']
             if tc['sii_code']:
                 r[_id] = tc['sii_code']
@@ -26,7 +142,9 @@ class sii_tax_code(models.Model):
 
 
     sii_code = new_fields.Integer('SII Code')
-    parent_sii_code = new_fields.Integer(compute='_get_parent_sii_code', type='integer', method=True, string='Parent SII Code', readonly=1)
+    parent_sii_code = new_fields.Integer(
+        compute='_get_parent_sii_code', type='integer', method=True,
+        string='Parent SII Code', readonly=1)
 
     def get_sii_name(self, cr, uid, ids, context=None):
         r = {}
@@ -56,16 +174,6 @@ class account_move(models.Model):
             res[record.id] = document_number
         return res
 
-    document_class_id = new_fields.Many2one(
-        'sii.document_class',
-        'Document Type',
-        copy=False,
-        # readonly=True
-    )
-    sii_document_number = new_fields.Char(
-        string='Document Number',
-        copy=False,)
-
     @api.one
     @api.depends(
         'sii_document_number',
@@ -81,12 +189,45 @@ class account_move(models.Model):
             document_number = self.name
         self.document_number = document_number
 
+    document_class_id = new_fields.Many2one(
+        'sii.document_class',
+        'Document Type',
+        copy=False,
+        readonly=True, states={'draft': [('readonly', False)]}
+    )
+    sii_document_number = new_fields.Char(
+        string='Document Number',
+        copy=False,readonly=True, states={'draft': [('readonly', False)]})
+
+    canceled = new_fields.Boolean(
+        string="Canceled?", readonly=True, states={
+            'draft': [('readonly', False)]})
+    iva_uso_comun = new_fields.Boolean(
+        string="Iva Uso Común", readonly=True,
+        states={'draft': [('readonly', False)]})
+    no_rec_code = new_fields.Selection([
+                    ('1','Compras destinadas a IVA a generar operaciones no \
+gravados o exentas.'),
+                    ('2','Facturas de proveedores registrados fuera de plazo.'),
+                    ('3','Gastos rechazados.'),
+                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) \
+recibidos.'),
+                    ('9','Otros.')],
+                    string="Código No recuperable",
+                    readonly=True, states={'draft': [('readonly', False)]})
+    # @TODO select 1 automático si es emisor 2Categoría
+
     document_number = new_fields.Char(
         compute='_get_document_number',
         string='Document Number',
-        readonly=True,
-        store=True
-        )
+        store=True,
+        readonly=True, states={'draft': [('readonly', False)]})
+    sended = new_fields.Boolean(
+        string="Enviado al SII", default=False,readonly=True,
+        states={'draft': [('readonly', False)]})
+    factor_proporcionalidad = new_fields.Float(
+        string="Factor proporcionalidad", default=0.00,
+        readonly=True, states={'draft': [('readonly', False)]})
 
 
 class account_move_line(models.Model):
@@ -200,7 +341,8 @@ class account_journal(models.Model):
     @api.one
     @api.constrains('point_of_sale_id', 'company_id')
     def _check_company_id(self):
-        if self.point_of_sale_id and self.point_of_sale_id.company_id != self.company_id:
+        if self.point_of_sale_id \
+                and self.point_of_sale_id.company_id != self.company_id:
             raise Warning(_('The company of the point of sale and of the \
                 journal must be the same!'))
 

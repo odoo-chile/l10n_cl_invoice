@@ -78,9 +78,11 @@ Include unusual taxes documents, as transfer invoice, and reissue
             if not responsability.id:
                 raise orm.except_orm(
                     _('Your company has not setted any responsability'),
-                    _('Please, set your company responsability in the company partner before continue.'))
+                    _('Please, set your company responsability in the company \
+partner before continue.'))
                 _logger.warning(
-                    'Your company "%s" has not setted any responsability.' % journal.company_id.name)
+                    _('Your company "{}" has not setted any responsability.\
+').format(journal.company_id.name))
           
             journal_type = journal.type
             if journal_type in ['sale', 'sale_refund']:

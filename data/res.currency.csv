@@ -1,4 +1,4 @@
-id,sii_code
+id,sii_code,name
 base.CLP,CLP
 base.AUD,AUD
 base.CAD,CAD
@@ -10,4 +10,6 @@ base.UYU,UYU
 base.VEF,VEF
 base.ARS,ARS
 base.EUR,EUR
+base.UTM,UTM,UTM
+base.UF,UF,UF
 

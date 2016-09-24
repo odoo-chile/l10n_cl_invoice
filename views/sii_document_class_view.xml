@@ -16,6 +16,7 @@
                         <field name='report_name'/>
                         <field name='document_type'/>
                         <field name='active'/>
+                        <field name='dte'/>
                     </group>
                 </form>
             </field>
@@ -33,6 +34,7 @@
                     <field name="document_letter_id"/>
                     <field name='report_name'/>
                     <field name='document_type'/>
+                    <field name='dte'/>
                 </tree>
             </field>
         </record>

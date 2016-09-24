@@ -6,9 +6,54 @@ from openerp.addons import decimal_precision as dp
 import logging
 _logger = logging.getLogger(__name__)
 
+class AccountInvoiceTax(models.Model):
+    _inherit = "account.invoice.tax"
+
+    def _compute_base_amount(self):
+        for tax in self:
+            if tax.tax_id.price_include:
+                base = 0.0
+                for line in tax.invoice_id.tax_id.invoice_line_ids:
+                    if tax.tax_id in line.tax_id:
+                        base += (line.price_tax_included / (
+                            1 + tax.tax_id.amount / 100))
+                        # valor sin redondeo
+                        base += sum((line.tax_id.filtered(
+                            lambda t: t.include_base_amount) - tax.tax_id).mapped(
+                                'amount'))
+                tax.base = tax.invoice_id.currency_id.round(base)
+                # se redondea global
+            else:
+                super(AccountInvoiceTax,tax)._compute_base_amount()
 
 class account_invoice(models.Model):
     _inherit = "account.invoice"
+
+    def _compute_amount(self):
+        for inv in self:
+            currency = inv.currency_id or None
+            amount_total = 0
+            for line in inv.invoice_line_ids:
+                price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                taxes = line.tax_id.with_context({'round':False}).compute_all(price, currency, line.quantity, product=line.product_id, partner=inv.partner_id)
+                if taxes and taxes['total_included'] > 0:
+                    amount_total += taxes['total_included']
+                else:
+                    amount_total += line.price_tax_included
+
+            inv.amount_tax = sum(line.amount for line in inv.tax_line_ids)
+            inv.amount_untaxed = currency.round(amount_total - inv.amount_tax)
+            inv.amount_total = inv.amount_untaxed + inv.amount_tax
+            amount_total_company_signed = inv.amount_total
+            amount_untaxed_signed = inv.amount_untaxed
+            if inv.currency_id and inv.currency_id != inv.company_id.currency_id:
+                amount_total_company_signed = inv.currency_id.compute(inv.amount_total, inv.company_id.currency_id)
+                amount_untaxed_signed = inv.currency_id.compute(inv.amount_untaxed, inv.company_id.currency_id)
+            sign = inv.type in ['in_refund', 'out_refund'] and -1 or 1
+            inv.amount_total_company_signed = amount_total_company_signed * sign
+            inv.amount_total_signed = inv.amount_total * sign
+            inv.amount_untaxed_signed = amount_untaxed_signed * sign
+
 
     def get_document_class_default(self, document_classes):
         if self.turn_issuer.vat_affected not in ['SI']:
@@ -41,7 +86,7 @@ class account_invoice(models.Model):
 
         for invoice in self.browse(cr, uid, ids, context=context):
             printed_amount_untaxed = invoice.amount_untaxed
-            printed_tax_ids = [x.id for x in invoice.tax_line]
+            printed_tax_id = [x.id for x in invoice.tax_line]
 
             vat_amount = sum([
                 x.tax_amount for x in invoice.tax_line if x.tax_code_id.parent_id.name == 'IVA'])
@@ -50,19 +95,19 @@ class account_invoice(models.Model):
                 line.other_taxes_amount for line in invoice.invoice_line)
             exempt_amount = sum(
                 line.exempt_amount for line in invoice.invoice_line)
-            vat_tax_ids = [
+            vat_tax_id = [
                 x.id for x in invoice.tax_line if x.tax_code_id.parent_id.name == 'IVA']
 
             if not invoice.vat_discriminated:
                 printed_amount_untaxed = sum(
                     line.printed_price_subtotal for line in invoice.invoice_line)
-                printed_tax_ids = [
+                printed_tax_id = [
                     x.id for x in invoice.tax_line if x.tax_code_id.parent_id.name != 'IVA']
             res[invoice.id] = {
                 'printed_amount_untaxed': printed_amount_untaxed,
-                'printed_tax_ids': printed_tax_ids,
+                'printed_tax_id': printed_tax_id,
                 'printed_amount_tax': invoice.amount_total - printed_amount_untaxed,
-                'vat_tax_ids': vat_tax_ids,
+                'vat_tax_id': vat_tax_id,
                 'vat_amount': vat_amount,
                 'other_taxes_amount': other_taxes_amount,
                 'exempt_amount': exempt_amount,
@@ -78,7 +123,7 @@ class account_invoice(models.Model):
             _printed_prices,
             type='float', digits_compute=dp.get_precision('Account'),
             string='Subtotal', multi='printed',),
-        'printed_tax_ids': old_fields.function(
+        'printed_tax_id': old_fields.function(
             _printed_prices,
             type='one2many', relation='account.invoice.tax', string='Tax',
             multi='printed'),
@@ -86,7 +131,7 @@ class account_invoice(models.Model):
             _printed_prices, type='float',
             digits_compute=dp.get_precision('Account'),
             string='Exempt Amount', multi='printed'),
-        'vat_tax_ids': old_fields.function(
+        'vat_tax_id': old_fields.function(
             _printed_prices,
             type='one2many', relation='account.invoice.tax',
             string='VAT Taxes', multi='printed'),
@@ -180,6 +225,18 @@ class account_invoice(models.Model):
         self.available_journal_document_class_ids = document_class_ids
         self.journal_document_class_id = document_class_id
 
+
+    @api.one
+    @api.depends('sii_document_class_id', 'sii_document_number', 'number')
+    def _get_document_number(self):
+        if self.sii_document_number and self.sii_document_class_id:
+            document_number = (
+                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
+        else:
+            document_number = self.number
+        self.document_number = document_number
+
+
     @api.one
     @api.depends(
         'sii_document_class_id',
@@ -234,16 +291,15 @@ class account_invoice(models.Model):
     formated_vat = fields.Char(
         string='Responsability',
         related='commercial_partner_id.formated_vat',)
-
-    @api.one
-    @api.depends('sii_document_class_id', 'sii_document_number', 'number')
-    def _get_document_number(self):
-        if self.sii_document_number and self.sii_document_class_id:
-            document_number = (
-                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
-        else:
-            document_number = self.number
-        self.document_number = document_number
+    iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
+    no_rec_code = fields.Selection([
+                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('2','Facturas de proveedores registrados fuera de plazo.'),
+                    ('3','Gastos rechazados.'),
+                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                    ('9','Otros.')],
+                    string="Código No recuperable",
+                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
         compute='_get_document_number',
