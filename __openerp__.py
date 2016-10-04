@@ -64,7 +64,8 @@
         'security/ir.model.access.csv',
         'security/l10n_cl_invoice_security.xml',
         'data/res.currency.csv',
+        'data/tax.xml',
         #'views/sii_menuitem.xml',
     ],
-    'version': '9.0.1.1',
+    'version': '9.0.2.0',
 }
