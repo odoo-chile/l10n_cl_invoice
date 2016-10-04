@@ -92,7 +92,7 @@ class sii_tax_code(models.Model):
                 'refund_account_id': tax.refund_account_id.id,
                 'analytic': tax.analytic,
             })
-        
+
 
         return {
             'taxes': sorted(taxes, key=lambda k: k['sequence']),
@@ -100,6 +100,16 @@ class sii_tax_code(models.Model):
             'total_included': currency.round(total_included) if bool(self.env.context.get("round", True)) else total_included,
             'base': base,
             }
+
+    def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None):
+        if self.amount_type == 'percent' and self.price_include:
+            neto = round(base_amount / (1 + self.amount / 100))
+            iva_round =  round(neto * ( self.amount / 100))
+            if round(neto+iva_round) != round(base_amount):
+                neto = int(base_amount / (1 + self.amount / 100))
+            iva = base_amount - neto
+            return iva
+        return super(sii_tax_code,self)._compute_amount(base_amount, price_unit, quantity, product, partner)
 
 class account_move(models.Model):
     _inherit = "account.move"

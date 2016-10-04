@@ -37,7 +37,11 @@ class AccountInvoiceTax(models.Model):
                 base = 0.0
                 for line in tax.invoice_id.invoice_line_ids:
                     if tax.tax_id in line.invoice_line_tax_ids:
-                        base += (line.price_tax_included / (1 + tax.tax_id.amount / 100)) # valor sin redondeo
+                        neto = round(line.price_tax_included / (1 + tax.tax_id.amount / 100))
+                        iva_round =  round(neto * ( tax.tax_id.amount / 100))
+                        if round(neto+iva_round) != round(line.price_tax_included):
+                            neto = int(line.price_tax_included / (1 + tax.tax_id.amount / 100))
+                        base += neto
                         base += sum((line.invoice_line_tax_ids.filtered(lambda t: t.include_base_amount) - tax.tax_id).mapped('amount'))
                 tax.base = tax.invoice_id.currency_id.round(base)# se redondea global
             else:
