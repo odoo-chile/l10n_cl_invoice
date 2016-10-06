@@ -125,7 +125,7 @@ class account_invoice(models.Model):
         return recs.name_get()
 
     @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
-    def _get_available_journal_document_class(self):
+    def _get_available_journal_document_class(self, default=None):
         for inv in self:
             invoice_type = inv.type
             document_class_ids = []
@@ -180,7 +180,11 @@ class account_invoice(models.Model):
                     inv.available_journals = []
 
             inv.available_journal_document_class_ids = document_class_ids
-            if not inv.journal_document_class_id:
+            if not inv.journal_document_class_id or default:
+                if default:
+                    for dc in document_classes:
+                        if dc.sii_document_class_id.id == default:
+                            document_class_id = dc.id
                 inv.journal_document_class_id = document_class_id
 
     @api.onchange('sii_document_class_id')
