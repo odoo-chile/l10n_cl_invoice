@@ -28,8 +28,6 @@ class AccountInvoiceRefund(models.TransientModel):
         inv_reference_obj = self.env['account.invoice.referencias']
         context = dict(self._context or {})
         xml_id = False
-
-
         for form in self:
             created_inv = []
             date = False
@@ -55,8 +53,13 @@ class AccountInvoiceRefund(models.TransientModel):
                     del invoice['id']
                     prod = self.env['product.product'].search([('product_tmpl_id','=',self.env.ref('l10n_cl_invoice.no_product').id)])
                     account = inv.invoice_line_ids.get_invoice_line_account(inv.type, prod, inv.fiscal_position_id, inv.company_id)
+                    type = inv.type
+                    if inv.type in [ 'out_invoice']
+                        type = 'out_refund'
+                    elif inv.type in ['in_invoice']:
+                        type = 'in_refund'
                     invoice.update({
-                        'type': inv.type,
+                        'type': type,
                         'date_invoice': date,
                         'state': 'draft',
                         'number': False,
@@ -64,7 +67,7 @@ class AccountInvoiceRefund(models.TransientModel):
                                                     'product_id' : prod.id,
                                                     'account_id': account.id,
                                                     'name' : prod.name,
-                                                    'quantity' : 0, 
+                                                    'quantity' : 0,
                                                     'price_unit' : 0
                                                     }]],
                         'date': date,
