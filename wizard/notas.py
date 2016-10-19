@@ -92,7 +92,7 @@ class AccountInvoiceRefund(models.TransientModel):
                 if inv.type in ['out_invoice','out_refund']:
                     refund.update({
                         'referencias':[[5,],[0,0, {
-                                                    'origen':inv.sii_document_number,
+                                                    'origen': int(inv.sii_document_number),
                                                     'sii_referencia_TpoDocRef': inv.sii_document_class_id.id,
                                                     'sii_referencia_CodRef': mode,
                                                     'motivo': description,
