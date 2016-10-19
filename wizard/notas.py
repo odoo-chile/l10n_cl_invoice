@@ -54,9 +54,9 @@ class AccountInvoiceRefund(models.TransientModel):
                     prod = self.env['product.product'].search([('product_tmpl_id','=',self.env.ref('l10n_cl_invoice.no_product').id)])
                     account = inv.invoice_line_ids.get_invoice_line_account(inv.type, prod, inv.fiscal_position_id, inv.company_id)
                     type = inv.type
-                    if inv.type in [ 'out_invoice']:
+                    if inv.type in [ 'out_invoice','out_refund']:
                         type = 'out_refund'
-                    elif inv.type in ['in_invoice']:
+                    elif inv.type in ['in_invoice','in_refund']:
                         type = 'in_refund'
                     invoice.update({
                         'type': type,
