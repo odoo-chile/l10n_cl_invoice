@@ -53,13 +53,7 @@ class AccountInvoiceRefund(models.TransientModel):
                     del invoice['id']
                     prod = self.env['product.product'].search([('product_tmpl_id','=',self.env.ref('l10n_cl_invoice.no_product').id)])
                     account = inv.invoice_line_ids.get_invoice_line_account(inv.type, prod, inv.fiscal_position_id, inv.company_id)
-                    type = inv.type
-                    if inv.type in [ 'out_invoice','out_refund']:
-                        type = 'out_refund'
-                    elif inv.type in ['in_invoice','in_refund']:
-                        type = 'in_refund'
                     invoice.update({
-                        'type': type,
                         'date_invoice': date,
                         'state': 'draft',
                         'number': False,
@@ -74,7 +68,6 @@ class AccountInvoiceRefund(models.TransientModel):
                         'name': description,
                         'origin': inv.origin,
                     })
-
                     for field in ('partner_id', 'account_id', 'currency_id',
                                          'payment_term_id', 'journal_id'):
                             invoice[field] = invoice[field] and invoice[field][0]
@@ -84,6 +77,11 @@ class AccountInvoiceRefund(models.TransientModel):
                 if mode in ['1','3']:
                     refund = inv.refund(form.date_invoice, date, description, inv.journal_id.id)
                     refund.compute_taxes()
+                type = inv.type
+                if inv.type in [ 'out_invoice','out_refund']:
+                    refund.type = 'out_refund'
+                elif inv.type in ['in_invoice','in_refund']:
+                    refund.type = 'in_refund'
                 refund._get_available_journal_document_class(tipo_nota.id)
                 created_inv.append(refund.id)
                 refund.update({
