@@ -18,13 +18,21 @@ class AccountInvoiceLine(models.Model):
     @api.depends('price_unit', 'discount', 'invoice_line_tax_ids', 'quantity',
         'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id', 'invoice_id.company_id')
     def _compute_price(self):
-        super(AccountInvoiceLine,self)._compute_price()
         currency = self.invoice_id and self.invoice_id.currency_id or None
-        price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
         taxes = False
-        if self.invoice_line_tax_ids.price_include:
-            taxes = self.invoice_line_tax_ids.compute_all(price, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id)
-        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > self.quantity * price) else self.quantity * price
+        total = self.quantity * self.price_unit
+        if self.invoice_line_tax_ids:
+            taxes = self.invoice_line_tax_ids.compute_all(self.price_unit, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id, discount=self.discount)
+        if taxes:
+            self.price_subtotal = price_subtotal_signed = taxes['total_excluded']
+        else:
+            total_discount = total * ((self.discount or 0.0) / 100.0)
+            self.price_subtotal = price_subtotal_signed = total - total_discount
+        if self.invoice_id.currency_id and self.invoice_id.currency_id != self.invoice_id.company_id.currency_id:
+            price_subtotal_signed = self.invoice_id.currency_id.compute(price_subtotal_signed, self.invoice_id.company_id.currency_id)
+        sign = self.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
+        self.price_subtotal_signed = price_subtotal_signed * sign
+        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
 
     price_tax_included = fields.Monetary(string='Amount', readonly=True, compute='_compute_price')
 

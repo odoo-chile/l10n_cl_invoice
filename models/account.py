@@ -3,6 +3,8 @@ from openerp.osv import fields
 from openerp import fields as new_fields
 from openerp import api, models, _
 from openerp.exceptions import Warning
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class sii_tax_code(models.Model):
@@ -13,7 +15,7 @@ class sii_tax_code(models.Model):
     retencion = new_fields.Float(string="Valor retención", default=0.00)
 
     @api.v8
-    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None):
+    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, discount=None):
         """ Returns all information required to apply taxes (in self + their children in case of a tax goup).
             We consider the sequence of the parent for group of taxes.
                 Eg. considering letters as taxes and alphabetic order as sequence :
@@ -48,8 +50,10 @@ class sii_tax_code(models.Model):
         # the 'Account' decimal precision + 5), and that way it's like
         # rounding after the sum of the tax amounts of each line
         prec = currency.decimal_places
-
-        total_excluded = total_included = base = round(price_unit * quantity, prec)
+        base = round(price_unit * quantity, prec)
+        tot_discount = round(base * ((discount or 0.0) /100))
+        base -= tot_discount
+        total_excluded = total_included = base
 
         if company_id.tax_calculation_rounding_method == 'round_globally' or not bool(self.env.context.get("round", True)):
             prec += 5
