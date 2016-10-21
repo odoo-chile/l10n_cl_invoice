@@ -63,8 +63,7 @@ class account_invoice(models.Model):
             currency = inv.currency_id or None
             amount_total = 0
             for line in inv.invoice_line_ids:
-                price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(price, currency, line.quantity, product=line.product_id, partner=inv.partner_id)
+                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(line.price_unit, currency, line.quantity, product=line.product_id, partner=inv.partner_id, discount=line.discount)
                 if taxes and taxes['total_included'] > 0:
                     amount_total += taxes['total_included']
                 else:
@@ -82,6 +81,31 @@ class account_invoice(models.Model):
             inv.amount_total_company_signed = amount_total_company_signed * sign
             inv.amount_total_signed = inv.amount_total * sign
             inv.amount_untaxed_signed = amount_untaxed_signed * sign
+
+    @api.multi
+    def get_taxes_values(self):
+        tax_grouped = {}
+        for line in self.invoice_line_ids:
+            tot_discount = line.price_unit * ((line.discount or 0.0) / 100.0)
+            taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
+            for tax in taxes:
+                val = self._prepare_tax_line_vals(line, tax)
+
+                # If the taxes generate moves on the same financial account as the invoice line,
+                # propagate the analytic account from the invoice line to the tax line.
+                # This is necessary in situations were (part of) the taxes cannot be reclaimed,
+                # to ensure the tax move is allocated to the proper analytic account.
+                if not val.get('account_analytic_id') and line.account_analytic_id and val['account_id'] == line.account_id.id:
+                    val['account_analytic_id'] = line.account_analytic_id.id
+
+                key = self.env['account.tax'].browse(tax['id']).get_grouping_key(val)
+
+                if key not in tax_grouped:
+                    tax_grouped[key] = val
+                else:
+                    tax_grouped[key]['amount'] += val['amount']
+                    tax_grouped[key]['base'] += val['base']
+        return tax_grouped
 
 
     def get_document_class_default(self, document_classes):
