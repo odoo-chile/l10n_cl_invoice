@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import osv, models, fields, api, _
-from openerp.osv import fields as old_fields
 from openerp.exceptions import except_orm, Warning
-import openerp.addons.decimal_precision as dp
-# from inspect import currentframe, getframeinfo
-# estas 2 lineas son para imprimir el numero de linea del script
-# (solo para debug)
-# frameinfo = getframeinfo(currentframe())
-# print(frameinfo.filename, frameinfo.lineno)
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -16,24 +9,31 @@ class AccountInvoiceLine(models.Model):
 
     @api.one
     @api.depends('price_unit', 'discount', 'invoice_line_tax_ids', 'quantity',
-        'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id',
-        'invoice_id.company_id')
+                 'product_id', 'invoice_id.partner_id',
+                 'invoice_id.currency_id', 'invoice_id.company_id')
     def _compute_price(self):
         currency = self.invoice_id and self.invoice_id.currency_id or None
         taxes = False
         total = self.quantity * self.price_unit
         if self.invoice_line_tax_ids:
-            taxes = self.invoice_line_tax_ids.compute_all(self.price_unit, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id, discount=self.discount)
+            taxes = self.invoice_line_tax_ids.compute_all(
+                self.price_unit, currency, self.quantity,
+                product=self.product_id, partner=self.invoice_id.partner_id,
+                discount=self.discount)
         if taxes:
-            self.price_subtotal = price_subtotal_signed = taxes['total_excluded']
+            self.price_subtotal = price_subtotal_signed = taxes[
+                'total_excluded']
         else:
             total_discount = total * ((self.discount or 0.0) / 100.0)
             self.price_subtotal = price_subtotal_signed = total - total_discount
-        if self.invoice_id.currency_id and self.invoice_id.currency_id != self.invoice_id.company_id.currency_id:
-            price_subtotal_signed = self.invoice_id.currency_id.compute(price_subtotal_signed, self.invoice_id.company_id.currency_id)
+        if self.invoice_id.currency_id and self.invoice_id.currency_id \
+                != self.invoice_id.company_id.currency_id:
+            price_subtotal_signed = self.invoice_id.currency_id.compute(
+                price_subtotal_signed, self.invoice_id.company_id.currency_id)
         sign = self.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
         self.price_subtotal_signed = price_subtotal_signed * sign
-        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
+        self.price_tax_included = taxes['total_included'] if (
+            taxes and taxes['total_included'] > total) else total
 
     price_tax_included = fields.Monetary(
         string='Amount', readonly=True, compute='_compute_price')
@@ -47,15 +47,22 @@ class AccountInvoiceTax(models.Model):
                 base = 0.0
                 for line in tax.invoice_id.invoice_line_ids:
                     if tax.tax_id in line.invoice_line_tax_ids:
-                        neto = round(line.price_tax_included / (1 + tax.tax_id.amount / 100))
-                        iva_round =  round(neto * ( tax.tax_id.amount / 100))
-                        if round(neto+iva_round) != round(line.price_tax_included):
-                            neto = int(line.price_tax_included / (1 + tax.tax_id.amount / 100))
+                        neto = round(line.price_tax_included / (
+                            1 + tax.tax_id.amount / 100))
+                        iva_round = round(neto * (tax.tax_id.amount / 100))
+                        if round(neto+iva_round) != round(
+                                line.price_tax_included):
+                            neto = int(line.price_tax_included / (
+                                1 + tax.tax_id.amount / 100))
                         base += neto
-                        base += sum((line.invoice_line_tax_ids.filtered(lambda t: t.include_base_amount) - tax.tax_id).mapped('amount'))
-                tax.base = tax.invoice_id.currency_id.round(base)# se redondea global
+                        base += sum(
+                            (line.invoice_line_tax_ids.filtered(
+                                lambda t: t.include_base_amount) \
+                             - tax.tax_id).mapped('amount'))
+                tax.base = tax.invoice_id.currency_id.round(base)
+                # se redondea global
             else:
-                super(AccountInvoiceTax,tax)._compute_base_amount()
+                super(AccountInvoiceTax, tax)._compute_base_amount()
 
 class account_invoice(models.Model):
     _inherit = "account.invoice"
@@ -65,7 +72,11 @@ class account_invoice(models.Model):
             currency = inv.currency_id or None
             amount_total = 0
             for line in inv.invoice_line_ids:
-                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(line.price_unit, currency, line.quantity, product=line.product_id, partner=inv.partner_id, discount=line.discount)
+                taxes = line.invoice_line_tax_ids.with_context(
+                    {'round':False}).compute_all(
+                        line.price_unit, currency, line.quantity,
+                        product=line.product_id, partner=inv.partner_id,
+                        discount=line.discount)
                 if taxes and taxes['total_included'] > 0:
                     amount_total += taxes['total_included']
                 else:
@@ -77,7 +88,8 @@ class account_invoice(models.Model):
             inv.amount_total = inv.amount_untaxed + inv.amount_tax
             amount_total_company_signed = inv.amount_total
             amount_untaxed_signed = inv.amount_untaxed
-            if inv.currency_id and inv.currency_id != inv.company_id.currency_id:
+            if inv.currency_id and inv.currency_id \
+                    != inv.company_id.currency_id:
                 amount_total_company_signed = inv.currency_id.compute(
                     inv.amount_total, inv.company_id.currency_id)
                 amount_untaxed_signed = inv.currency_id.compute(
@@ -92,18 +104,28 @@ class account_invoice(models.Model):
         tax_grouped = {}
         for line in self.invoice_line_ids:
             tot_discount = line.price_unit * ((line.discount or 0.0) / 100.0)
-            taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
+            taxes = line.invoice_line_tax_ids.compute_all(
+                line.price_unit, self.currency_id, line.quantity,
+                line.product_id, self.partner_id,
+                discount=line.discount)['taxes']
             for tax in taxes:
                 val = self._prepare_tax_line_vals(line, tax)
 
-                # If the taxes generate moves on the same financial account as the invoice line,
-                # propagate the analytic account from the invoice line to the tax line.
-                # This is necessary in situations were (part of) the taxes cannot be reclaimed,
-                # to ensure the tax move is allocated to the proper analytic account.
-                if not val.get('account_analytic_id') and line.account_analytic_id and val['account_id'] == line.account_id.id:
+                # If the taxes generate moves on the same financial account as
+                # the invoice line,
+                # propagate the analytic account from the invoice line to the
+                # tax line.
+                # This is necessary in situations were (part of) the taxes
+                # cannot be reclaimed,
+                # to ensure the tax move is allocated to the proper analytic
+                # account.
+                if not val.get('account_analytic_id') and \
+                        line.account_analytic_id and \
+                        val['account_id'] == line.account_id.id:
                     val['account_analytic_id'] = line.account_analytic_id.id
 
-                key = self.env['account.tax'].browse(tax['id']).get_grouping_key(val)
+                key = self.env['account.tax'].browse(
+                    tax['id']).get_grouping_key(val)
 
                 if key not in tax_grouped:
                     tax_grouped[key] = val
@@ -162,7 +184,7 @@ class account_invoice(models.Model):
             recs = self.search([('name', operator, name)] + args, limit=limit)
         return recs.name_get()
 
-    @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
+    @api.onchange('journal_id', 'partner_id', 'turn_issuer', 'invoice_turn')
     def _get_available_journal_document_class(self, default=None):
         for inv in self:
             invoice_type = inv.type
@@ -180,14 +202,14 @@ class account_invoice(models.Model):
                         inv.partner_id.id, operation_type, inv.company_id.id,
                         inv.turn_issuer.vat_affected, invoice_type)
 
-                    domain = [
-                        ('journal_id', '=', inv.journal_id.id),
-                        '|', ('sii_document_class_id.document_letter_id',
-                              'in', letter_ids),
-                             ('sii_document_class_id.document_letter_id',
-                              '=', False)]
-
-                    # If document_type in context we try to serch specific document
+                    domain = [('journal_id', '=', inv.journal_id.id), '|', (
+                        'sii_document_class_id.document_letter_id', 'in',
+                        letter_ids),
+                              ('sii_document_class_id.document_letter_id',
+                               '=',
+                               False)]
+                    # If document_type in context we try to serch specific
+                    # document
                     # document_type = self._context.get('document_type', False)
                     # en este punto document_type siempre es falso.
                     # TODO: revisar esta opcion
@@ -195,14 +217,20 @@ class account_invoice(models.Model):
                     #if document_type:
                     #    document_classes = self.env[
                     #        'account.journal.sii_document_class'].search(
-                    #        domain + [('sii_document_class_id.document_type', '=', document_type)])
+                    #        domain + [('sii_document_class_id.document_type',
+                    # '=', document_type)])
                     #    if document_classes.ids:
-                    #        # revisar si hay condicion de exento, para poner como primera alternativa estos
-                    #        document_class_id = self.get_document_class_default(document_classes)
-                    if invoice_type  in [ 'in_refund', 'out_refund']:
-                        domain += [('sii_document_class_id.document_type','in',['debit_note','credit_note'] )]
+                    #        # revisar si hay condicion de exento, para poner
+                    # como primera alternativa estos
+                    #        document_class_id = self.get_document_class_
+                    # default(document_classes)
+                    if invoice_type in ['in_refund', 'out_refund']:
+                        domain += [(
+                            'sii_document_class_id.document_type',
+                            'in', ['debit_note', 'credit_note'])]
                     else:
-                        domain += [('sii_document_class_id.document_type','in',['invoice','invoice_in'] )]
+                        domain += [('sii_document_class_id.document_type',
+                                    'in', ['invoice', 'invoice_in'])]
 
                     # For domain, we search all documents
                     document_classes = self.env[
@@ -211,9 +239,11 @@ class account_invoice(models.Model):
 
                     # If not specific document type found, we choose another one
                     if not document_class_id and document_class_ids:
-                        # revisar si hay condicion de exento, para poner como primera alternativa estos
+                        # revisar si hay condicion de exento, para poner como
+                        #  primera alternativa estos
                         # to-do: manejar más fino el documento por defecto.
-                        document_class_id = inv.get_document_class_default(document_classes)
+                        document_class_id = inv.get_document_class_default(
+                            document_classes)
                 # incorporado nuevo, para la compra
                 if operation_type == 'purchase':
                     inv.available_journals = []
@@ -247,8 +277,11 @@ a VAT."""))
         'company_id.invoice_vat_discrimination_default',)
     def get_vat_discriminated(self):
         vat_discriminated = False
-        # agregarle una condicion: si el giro es afecto a iva, debe seleccionar factura, de lo contrario boleta (to-do)
-        if self.sii_document_class_id.document_letter_id.vat_discriminated or self.company_id.invoice_vat_discrimination_default == 'discriminate_default':
+        # agregarle una condicion: si el giro es afecto a iva, debe seleccionar
+        # factura, de lo contrario boleta (to-do)
+        if self.sii_document_class_id.document_letter_id.vat_discriminated \
+                or self.company_id.invoice_vat_discrimination_default == \
+                        'discriminate_default':
             vat_discriminated = True
         self.vat_discriminated = vat_discriminated
 
@@ -257,7 +290,8 @@ a VAT."""))
     def _get_document_number(self):
         if self.sii_document_number and self.sii_document_class_id:
             document_number = (
-                self.sii_document_class_id.doc_code_prefix or '') + self.sii_document_number
+                self.sii_document_class_id.doc_code_prefix or '') + \
+                              self.sii_document_number
         else:
             document_number = self.number
         self.document_number = document_number
@@ -318,15 +352,16 @@ a VAT."""))
         string="Uso Común", readonly=True, states={
             'draft': [('readonly', False)]})
     # solamente para compras tratamiento del iva
-    no_rec_code = fields.Selection([
-                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
-                    ('2','Facturas de proveedores registrados fuera de plazo.'),
-                    ('3','Gastos rechazados.'),
-                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
-                    ('9','Otros.')],
-                    string="Código No recuperable",
-                    readonly=True, states={'draft': [('readonly', False)]})
-
+    no_rec_code = fields.Selection(
+        [
+            ('1', 'Compras destinadas a IVA a generar operaciones no gravados \
+o exentas.'),
+            ('2', 'Facturas de proveedores registrados fuera de plazo.'),
+            ('3', 'Gastos rechazados.'),
+            ('4', 'Entregas gratuitas (premios, bonificaciones, etc.) \
+recibidos.'),
+            ('9', 'Otros.')], string="Código No recuperable", readonly=True,
+        states={'draft': [('readonly', False)]})
     document_number = fields.Char(
         compute='_get_document_number',
         string='Document Number',
@@ -341,12 +376,12 @@ a VAT."""))
         string='Use Documents?',
         readonly=True)
     referencias = fields.One2many(
-        'account.invoice.referencias','invoice_id', readonly=True, states={
+        'account.invoice.referencias', 'invoice_id', readonly=True, states={
             'draft': [('readonly', False)]})
     forma_pago = fields.Selection(
-        [('1','Contado'),
-         ('2','Crédito'),
-         ('3','Gratuito')], string="Forma de pago", readonly=True,
+        [('1', 'Contado'),
+         ('2', 'Crédito'),
+         ('3', 'Gratuito')], string="Forma de pago", readonly=True,
         states={'draft': [('readonly', False)]},
         default='1')
     contact_id = fields.Many2one('res.partner', string="Contacto")
@@ -369,37 +404,44 @@ a VAT."""))
                     _('Supplier Invoice Number must be unique per Supplier '
                       'and Company!'))
 
-    _sql_constraints = [
-        ('number_supplier_invoice_number',
-            'unique(supplier_invoice_number, partner_id, company_id)',
-         'Supplier Invoice Number must be unique per Supplier and Company!'),
-    ]
+    _sql_constraints = [(
+        'number_supplier_invoice_number',
+        'unique(supplier_invoice_number, partner_id, company_id)',
+        'Supplier Invoice Number must be unique per Supplier and Company!')]
 
     @api.multi
     def action_move_create(self):
         for obj_inv in self:
             invtype = obj_inv.type
-            if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
+            if obj_inv.journal_document_class_id \
+                    and not obj_inv.sii_document_number:
                 if invtype in ('out_invoice', 'out_refund'):
                     if not obj_inv.journal_document_class_id.sequence_id:
                         raise osv.except_osv(_('Error!'), _(
-                            'Please define sequence on the journal related documents to this invoice.'))
-                    sii_document_number = obj_inv.journal_document_class_id.sequence_id.next_by_id()
-                    prefix = obj_inv.journal_document_class_id.sii_document_class_id.doc_code_prefix or ''
-                    move_name = (prefix + str(sii_document_number)).replace(' ','')
+                            'Please define sequence on the journal \
+related documents to this invoice.'))
+                    sii_document_number = \
+                        obj_inv.journal_document_class_id.sequence_id.\
+                            next_by_id()
+                    prefix = \
+                        obj_inv.journal_document_class_id.\
+                            sii_document_class_id.doc_code_prefix or ''
+                    move_name = (
+                        prefix + str(sii_document_number)).replace(' ', '')
                     obj_inv.write({'move_name': move_name})
                 elif invtype in ('in_invoice', 'in_refund'):
                     sii_document_number = obj_inv.supplier_invoice_number
         super(account_invoice, self).action_move_create()
         for obj_inv in self:
             invtype = obj_inv.type
-            if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
+            if obj_inv.journal_document_class_id \
+                    and not obj_inv.sii_document_number:
                 obj_inv.write({'sii_document_number': sii_document_number})
             document_class_id = obj_inv.sii_document_class_id.id
             guardar = {'document_class_id': document_class_id,
-                'sii_document_number': obj_inv.sii_document_number,
-                'no_rec_code':obj_inv.no_rec_code,
-                'iva_uso_comun':obj_inv.iva_uso_comun,}
+                       'sii_document_number': obj_inv.sii_document_number,
+                       'no_rec_code':obj_inv.no_rec_code,
+                       'iva_uso_comun':obj_inv.iva_uso_comun,}
             obj_inv.move_id.write(guardar)
         return True
 
@@ -414,7 +456,8 @@ a VAT."""))
 
     def get_valid_document_letters(
             self, cr, uid, partner_id, operation_type='sale',
-            company_id=False, vat_affected='SI', invoice_type='out_invoice', context=None):
+            company_id=False, vat_affected='SI', invoice_type='out_invoice',
+            context=None):
         if context is None:
             context = {}
 
@@ -456,30 +499,34 @@ a VAT."""))
             issuer_responsability_id = partner.responsability_id.id
             receptor_responsability_id = company.partner_id.responsability_id.id
             if invoice_type == 'in_invoice':
-                print('responsabilidad del partner')
+                _logger.info('responsabilidad del partner')
                 if issuer_responsability_id == self.pool.get(
-                        'ir.model.data').get_object_reference(
-                        cr, uid, 'l10n_cl_invoice', 'res_BH')[1]:
-                    print('el proveedor es de segunda categoria y emite boleta de honorarios')
+                        'ir.model.data').get_object_reference(cr, uid,
+                                                              'l10n_cl_invoice',
+                                                              'res_BH')[1]:
+                    _logger.info('el proveedor es de segunda categoria y \
+emite boleta de honorarios')
                 else:
-                    print('el proveedor es de primera categoria y emite facturas o facturas no afectas')
+                    _logger.info('el proveedor es de primera categoria y \
+emite facturas o facturas no afectas')
                 domain = [
                     ('issuer_ids', '=', issuer_responsability_id),
                     ('receptor_ids', '=', receptor_responsability_id)]
             else:
                 # nota de credito de compras
-                domain = ['|',('issuer_ids', '=', issuer_responsability_id),
-                              ('receptor_ids', '=', receptor_responsability_id)]
+                domain = ['|',
+                          ('issuer_ids', '=', issuer_responsability_id),
+                          ('receptor_ids', '=', receptor_responsability_id)]
         else:
             raise except_orm(_('Operation Type Error'),
                              _('Operation Type Must be "Sale" or "Purchase"'))
 
         # TODO: fijar esto en el wizard, o llamar un wizard desde aca
         # if not company.partner_id.responsability_id.id:
-        #     raise except_orm(_('You have not settled a tax payer type for your\
-        #      company.'),
-        #      _('Please, set your company tax payer type (in company or \
-        #      partner before to continue.'))
+        # raise except_orm(_('You have not settled a tax payer type for your\
+        #  company.'),
+        # _('Please, set your company tax payer type (in company or \
+        # partner before to continue.'))
 
         document_letter_ids = document_letter_obj.search(
             cr, uid, domain, context=context)
@@ -489,11 +536,15 @@ class Referencias(models.Model):
     _name = 'account.invoice.referencias'
 
     origen = fields.Char(string="Origin")
-    sii_referencia_TpoDocRef =  fields.Many2one('sii.document_class',
-        string="SII Reference Document Type")
+    sii_referencia_TpoDocRef = fields.Many2one(
+        'sii.document_class',string="SII Reference Document Type")
     sii_referencia_CodRef = fields.Selection(
-        [('1','Anula Documento de Referencia'),('2','Corrige texto Documento Referencia'),('3','Corrige montos')],
+        [('1', 'Anula Documento de Referencia'),
+         ('2', 'Corrige texto Documento Referencia'),
+         ('3', 'Corrige montos')],
         string="SII Reference Code")
     motivo = fields.Char(string="Motivo")
-    invoice_id = fields.Many2one('account.invoice', ondelete='cascade',index=True,copy=False,string="Documento")
+    invoice_id = fields.Many2one(
+        'account.invoice', ondelete='cascade',
+        index=True, copy=False, string="Documento")
     fecha_documento = fields.Date(string="Fecha Documento", required=True)
