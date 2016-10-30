@@ -3,17 +3,20 @@ from openerp.osv import fields
 from openerp import fields as new_fields
 from openerp import api, models, _
 from openerp.exceptions import Warning
+import logging
+_logger = logging.getLogger(__name__)
 
 
-class sii_tax_code(models.Model):
+class SiiTaxCode(models.Model):
     _inherit = 'account.tax'
 
     sii_code = new_fields.Integer('SII Code')
     sii_type = new_fields.Selection([ ('A','Anticipado'),('R','Retención')], string="Tipo de impuesto para el SII")
     retencion = new_fields.Float(string="Valor retención", default=0.00)
+    no_rec = new_fields.Boolean(string="Es No Recuperable")#esto es distinto al código no recuperable, depende del manejo de recuperación de impuesto
 
     @api.v8
-    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None):
+    def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, discount=None):
         """ Returns all information required to apply taxes (in self + their children in case of a tax goup).
             We consider the sequence of the parent for group of taxes.
                 Eg. considering letters as taxes and alphabetic order as sequence :
@@ -48,8 +51,10 @@ class sii_tax_code(models.Model):
         # the 'Account' decimal precision + 5), and that way it's like
         # rounding after the sum of the tax amounts of each line
         prec = currency.decimal_places
-
-        total_excluded = total_included = base = round(price_unit * quantity, prec)
+        base = round(price_unit * quantity, prec)
+        tot_discount = round(base * ((discount or 0.0) /100))
+        base -= tot_discount
+        total_excluded = total_included = base
 
         if company_id.tax_calculation_rounding_method == 'round_globally' or not bool(self.env.context.get("round", True)):
             prec += 5
@@ -80,6 +85,9 @@ class sii_tax_code(models.Model):
             else:
                 total_included += tax_amount
 
+            # Keep base amount used for the current tax
+            tax_base = base
+
             if tax.include_base_amount:
                 base += tax_amount
 
@@ -87,12 +95,13 @@ class sii_tax_code(models.Model):
                 'id': tax.id,
                 'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
                 'amount': tax_amount,
+                'base': tax_base,
                 'sequence': tax.sequence,
                 'account_id': tax.account_id.id,
                 'refund_account_id': tax.refund_account_id.id,
                 'analytic': tax.analytic,
             })
-        
+
 
         return {
             'taxes': sorted(taxes, key=lambda k: k['sequence']),
@@ -100,6 +109,16 @@ class sii_tax_code(models.Model):
             'total_included': currency.round(total_included) if bool(self.env.context.get("round", True)) else total_included,
             'base': base,
             }
+
+    def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None):
+        if self.amount_type == 'percent' and self.price_include:
+            neto = round(base_amount / (1 + self.amount / 100))
+            iva_round =  round(neto * ( self.amount / 100))
+            if round(neto+iva_round) != round(base_amount):
+                neto = int(base_amount / (1 + self.amount / 100))
+            iva = base_amount - neto
+            return iva
+        return super(SiiTaxCode,self)._compute_amount(base_amount, price_unit, quantity, product, partner)
 
 class account_move(models.Model):
     _inherit = "account.move"

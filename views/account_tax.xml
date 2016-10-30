@@ -9,6 +9,7 @@
                 <field name="sii_code" />
                 <field name="sii_type" />
                 <field name="retencion" attrs="{'required':[('sii_type','in',['R'])], 'invisible':[('sii_type','=',False)]}" />
+                <field name="no_rec" />
             </field>
 
         </field>
@@ -22,6 +23,8 @@
             <field name="name" position="before">
                 <field name="sii_code" />
                 <field name="sii_type" />
+                <field name="retencion" />
+                <field name="no_rec" />
             </field>
         </field>
     </record>

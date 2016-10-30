@@ -45,6 +45,12 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name="arch" type="xml">
+              <button name="invoice_cancel" position="attributes">
+                  <attribute name="invisible">1</attribute>
+              </button>
+              <field name="state" position="before">
+                <button name="%(account.action_account_invoice_refund)d" type='action' string='Refund Invoice' groups="base.group_user" attrs="{'invisible': ['|',('type', '=', 'out_invoice'), ('state', 'not in', ('open','proforma2','paid'))]}"/>
+              </field>
                <xpath expr="//page/field[@name='invoice_line_ids']/tree/field[@name='product_id']" position="after">
                  <field name="name" />
                </xpath>
@@ -136,6 +142,12 @@
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_supplier_form"/>
             <field name="arch" type="xml">
+              <button name="invoice_cancel" position="attributes">
+                  <attribute name="invisible">1</attribute>
+              </button>
+              <field name="state" position="before">
+                <button name="%(account.action_account_invoice_refund)d" type='action' string='Ask Refund' groups="account.group_account_invoice" attrs="{'invisible': ['|',('type', '=', 'in_invoice'),('state','not in',('open','paid'))]}"/>
+              </field>
                 <form>
                     <field name="available_journal_document_class_ids" invisible="1"/>
                     <field name="use_documents" invisible="1"/>

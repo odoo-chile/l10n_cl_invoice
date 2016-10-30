@@ -36,6 +36,8 @@
         'data/document_type.xml',
         'security/l10n_cl_invoice_security.xml',
         'wizard/journal_config_wizard_view.xml',
+        'wizard/notas.xml',
+        'data/product.xml',
         'data/responsability.xml',
         'data/sii.document_letter.csv',
         'data/sii.document_class.csv',
@@ -64,7 +66,8 @@
         'security/ir.model.access.csv',
         'security/l10n_cl_invoice_security.xml',
         'data/res.currency.csv',
+        'data/tax.xml',
         #'views/sii_menuitem.xml',
     ],
-    'version': '9.0.1.1',
+    'version': '9.0.3.0',
 }

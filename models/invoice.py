@@ -19,17 +19,21 @@ class AccountInvoiceLine(models.Model):
         'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id',
         'invoice_id.company_id')
     def _compute_price(self):
-        super(AccountInvoiceLine,self)._compute_price()
         currency = self.invoice_id and self.invoice_id.currency_id or None
-        price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
         taxes = False
-        if self.invoice_line_tax_ids.price_include:
-            taxes = self.invoice_line_tax_ids.compute_all(
-                price, currency, self.quantity, product=self.product_id,
-                partner=self.invoice_id.partner_id)
-        self.price_tax_included = taxes['total_included'] if (
-            taxes and taxes['total_included'] > self.quantity * price) else \
-            self.quantity * price
+        total = self.quantity * self.price_unit
+        if self.invoice_line_tax_ids:
+            taxes = self.invoice_line_tax_ids.compute_all(self.price_unit, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id, discount=self.discount)
+        if taxes:
+            self.price_subtotal = price_subtotal_signed = taxes['total_excluded']
+        else:
+            total_discount = total * ((self.discount or 0.0) / 100.0)
+            self.price_subtotal = price_subtotal_signed = total - total_discount
+        if self.invoice_id.currency_id and self.invoice_id.currency_id != self.invoice_id.company_id.currency_id:
+            price_subtotal_signed = self.invoice_id.currency_id.compute(price_subtotal_signed, self.invoice_id.company_id.currency_id)
+        sign = self.invoice_id.type in ['in_refund', 'out_refund'] and -1 or 1
+        self.price_subtotal_signed = price_subtotal_signed * sign
+        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > total) else total
 
     price_tax_included = fields.Monetary(
         string='Amount', readonly=True, compute='_compute_price')
@@ -43,13 +47,13 @@ class AccountInvoiceTax(models.Model):
                 base = 0.0
                 for line in tax.invoice_id.invoice_line_ids:
                     if tax.tax_id in line.invoice_line_tax_ids:
-                        base += (
-                            line.price_tax_included / (
-                                1 + tax.tax_id.amount / 100))
-                        base += sum((line.invoice_line_tax_ids.filtered(
-                            lambda t: t.include_base_amount) - tax.tax_id).
-                                    mapped('amount'))
-                tax.base = tax.invoice_id.currency_id.round(base)
+                        neto = round(line.price_tax_included / (1 + tax.tax_id.amount / 100))
+                        iva_round =  round(neto * ( tax.tax_id.amount / 100))
+                        if round(neto+iva_round) != round(line.price_tax_included):
+                            neto = int(line.price_tax_included / (1 + tax.tax_id.amount / 100))
+                        base += neto
+                        base += sum((line.invoice_line_tax_ids.filtered(lambda t: t.include_base_amount) - tax.tax_id).mapped('amount'))
+                tax.base = tax.invoice_id.currency_id.round(base)# se redondea global
             else:
                 super(AccountInvoiceTax,tax)._compute_base_amount()
 
@@ -61,18 +65,15 @@ class account_invoice(models.Model):
             currency = inv.currency_id or None
             amount_total = 0
             for line in inv.invoice_line_ids:
-                price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                taxes = line.invoice_line_tax_ids.with_context(
-                    {'round':False}).compute_all(
-                    price, currency, line.quantity, product=line.product_id,
-                    partner=inv.partner_id)
+                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(line.price_unit, currency, line.quantity, product=line.product_id, partner=inv.partner_id, discount=line.discount)
                 if taxes and taxes['total_included'] > 0:
                     amount_total += taxes['total_included']
                 else:
                     amount_total += line.price_tax_included
 
             inv.amount_tax = sum(line.amount for line in inv.tax_line_ids)
-            inv.amount_untaxed = currency.round(amount_total - inv.amount_tax)
+            bases = sum(line.base for line in inv.tax_line_ids)
+            inv.amount_untaxed = bases
             inv.amount_total = inv.amount_untaxed + inv.amount_tax
             amount_total_company_signed = inv.amount_total
             amount_untaxed_signed = inv.amount_untaxed
@@ -85,6 +86,31 @@ class account_invoice(models.Model):
             inv.amount_total_company_signed = amount_total_company_signed * sign
             inv.amount_total_signed = inv.amount_total * sign
             inv.amount_untaxed_signed = amount_untaxed_signed * sign
+
+    @api.multi
+    def get_taxes_values(self):
+        tax_grouped = {}
+        for line in self.invoice_line_ids:
+            tot_discount = line.price_unit * ((line.discount or 0.0) / 100.0)
+            taxes = line.invoice_line_tax_ids.compute_all(line.price_unit, self.currency_id, line.quantity, line.product_id, self.partner_id, discount=line.discount)['taxes']
+            for tax in taxes:
+                val = self._prepare_tax_line_vals(line, tax)
+
+                # If the taxes generate moves on the same financial account as the invoice line,
+                # propagate the analytic account from the invoice line to the tax line.
+                # This is necessary in situations were (part of) the taxes cannot be reclaimed,
+                # to ensure the tax move is allocated to the proper analytic account.
+                if not val.get('account_analytic_id') and line.account_analytic_id and val['account_id'] == line.account_id.id:
+                    val['account_analytic_id'] = line.account_analytic_id.id
+
+                key = self.env['account.tax'].browse(tax['id']).get_grouping_key(val)
+
+                if key not in tax_grouped:
+                    tax_grouped[key] = val
+                else:
+                    tax_grouped[key]['amount'] += val['amount']
+                    tax_grouped[key]['base'] += val['base']
+        return tax_grouped
 
 
     def get_document_class_default(self, document_classes):
@@ -137,7 +163,7 @@ class account_invoice(models.Model):
         return recs.name_get()
 
     @api.onchange('journal_id', 'partner_id', 'turn_issuer','invoice_turn')
-    def _get_available_journal_document_class(self):
+    def _get_available_journal_document_class(self, default=None):
         for inv in self:
             invoice_type = inv.type
             document_class_ids = []
@@ -193,7 +219,11 @@ class account_invoice(models.Model):
                     inv.available_journals = []
 
             inv.available_journal_document_class_ids = document_class_ids
-            if not inv.journal_document_class_id:
+            if not inv.journal_document_class_id or default:
+                if default:
+                    for dc in document_classes:
+                        if dc.sii_document_class_id.id == default:
+                            document_class_id = dc.id
                 inv.journal_document_class_id = document_class_id
 
     @api.onchange('sii_document_class_id')
@@ -296,7 +326,6 @@ a VAT."""))
                     ('9','Otros.')],
                     string="Código No recuperable",
                     readonly=True, states={'draft': [('readonly', False)]})
-                    # @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
         compute='_get_document_number',

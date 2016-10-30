@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <record id="l10n_cl.OTAX_19" model="account.tax.template">
+      <field name="sii_code">14</field>
+    </record>
+    <record id="l10n_cl.OTAX_19" model="account.tax.template">
+      <field name="sii_code">14</field>
+    </record>
+    <record id="retencion_iva" model="account.tax.template">
+      <field name="chart_template_id" ref="l10n_cl.cl_chart_template"/>
+      <field name="sii_code">15</field>
+      <field name="name">Retención Total IVA</field>
+      <field name="description">Retención</field>
+      <field name="amount">19</field>
+      <field name="amount_type">percent</field>
+      <field name="type_tax_use">purchase</field>
+      <field name="refund_account_id" ref="l10n_cl.231"/>
+      <field name="account_id" ref="l10n_cl.231"/>
+      <field name="sii_type" >R</field>
+      <field name="retencion">19.000</field>
+    </record>
+    <record id="exento_compra" model="account.tax.template">
+      <field name="chart_template_id" ref="l10n_cl.cl_chart_template"/>
+      <field name="sii_code">0</field>
+      <field name="name">Exento Compra</field>
+      <field name="description">Exento</field>
+      <field name="amount">0</field>
+      <field name="amount_type">percent</field>
+      <field name="type_tax_use">purchase</field>
+      <field name="refund_account_id" ref="l10n_cl.231"/>
+      <field name="account_id" ref="l10n_cl.231"/>
+    </record>
+    <record id="exento_venta" model="account.tax.template">
+      <field name="chart_template_id" ref="l10n_cl.cl_chart_template"/>
+      <field name="sii_code">0</field>
+      <field name="name">Exento Venta</field>
+      <field name="description">Exento</field>
+      <field name="amount">0</field>
+      <field name="amount_type">percent</field>
+      <field name="type_tax_use">sale</field>
+      <field name="refund_account_id" ref="l10n_cl.231"/>
+      <field name="account_id" ref="l10n_cl.231"/>
+    </record>
+    <record id="especifico_compra" model="account.tax.template">
+      <field name="chart_template_id" ref="l10n_cl.cl_chart_template"/>
+      <field name="sii_code">29</field>
+      <field name="name">Específico Compra</field>
+      <field name="description">Especifico</field>
+      <field name="amount">63</field>
+      <field name="amount_type">percent</field>
+      <field name="type_tax_use">purchase</field>
+      <field name="no_rec" eval="True" />
+      <field name="refund_account_id" ref="l10n_cl.231"/>
+      <field name="account_id" ref="l10n_cl.231"/>
+    </record>
+</openerp>

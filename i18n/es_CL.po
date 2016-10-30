@@ -7,16 +7,14 @@ msgstr ""
 "Project-Id-Version: l10n_cl_invoice - Odoo V8\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-03-21 19:58+0000\n"
-"PO-Revision-Date: 2016-03-21 17:06-0300\n"
-"Last-Translator: Daniel Blanco - Blanco Martín & Asociados "
-"<daniel@blancomartin.cl>\n"
+"PO-Revision-Date: 2016-10-06 21:17-0300\n"
+"Last-Translator: Daniel Santibáñez Polanco <dansanti@gmail.cm>\n"
 "Language-Team: Blanco Martín & Asociados <info@blancomartin.cl>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
 "Language: es_CL\n"
-"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
 #. module: l10n_cl_invoice
 #: help:account.journal.document_config,weird_documents:0
@@ -136,8 +134,7 @@ msgstr "Creado por"
 #: field:sii.concept_type,create_date:0 field:sii.document_class,create_date:0
 #: field:sii.document_letter,create_date:0
 #: field:sii.document_type,create_date:0 field:sii.optional_type,create_date:0
-#: field:sii.point_of_sale,create_date:0
-#: field:sii.responsability,create_date:0
+#: field:sii.point_of_sale,create_date:0 field:sii.responsability,create_date:0
 #, fuzzy
 msgid "Created on"
 msgstr "Creado en"
@@ -318,9 +315,8 @@ msgstr "Giros de La Compañia"
 
 #. module: l10n_cl_invoice
 #: view:account.journal:l10n_cl_invoice.view_account_journal_cl_form
-#, fuzzy
 msgid "Giros del Diario"
-msgstr " D, <borrar>, <supr>  Borrar una entrada"
+msgstr "Giros del Diario"
 
 #. module: l10n_cl_invoice
 #: view:res.partner:l10n_cl_invoice.view_res_partner_form
@@ -354,9 +350,8 @@ msgstr ""
 
 #. module: l10n_cl_invoice
 #: model:ir.model,name:l10n_cl_invoice.model_account_invoice
-#, fuzzy
 msgid "Invoice"
-msgstr "Documento de Salida"
+msgstr "Factura"
 
 #. module: l10n_cl_invoice
 #: model:ir.model,name:l10n_cl_invoice.model_account_invoice_line
@@ -428,15 +423,13 @@ msgstr "Documentos Tributarios SII del Diario"
 
 #. module: l10n_cl_invoice
 #: field:account.journal,journal_activities_ids:0
-#, fuzzy
 msgid "Journal Turns"
-msgstr "%s: recuperando el fichero de transacciones\n"
+msgstr "Giros del Diario"
 
 #. module: l10n_cl_invoice
 #: field:partner.activities,journal_ids:0
-#, fuzzy
 msgid "Journals"
-msgstr "Libros"
+msgstr "Diarios"
 
 #. module: l10n_cl_invoice
 #: field:account.journal.document_config,write_uid:0
@@ -622,9 +615,8 @@ msgstr "Receptores"
 
 #. module: l10n_cl_invoice
 #: view:account.invoice:l10n_cl_invoice.view_invoice_form
-#, fuzzy
 msgid "Refund Invoice"
-msgstr "Nota de Cŕedito"
+msgstr "Nota de Crédito o Débito"
 
 #. module: l10n_cl_invoice
 #: field:account.journal.document_config,dte_register:0
@@ -639,15 +631,13 @@ msgstr "Registra Documentos de Zona Franca o Resolución #1057?"
 
 #. module: l10n_cl_invoice
 #: field:account.journal.document_config,non_dte_register:0
-#, fuzzy
 msgid "Register Manual Documents?"
-msgstr "¿Registra Documentos Tributarios Electrónicos?"
+msgstr "¿Registra Documentos Tributarios Manuales?"
 
 #. module: l10n_cl_invoice
 #: field:account.journal.document_config,settlement_invoice:0
-#, fuzzy
 msgid "Register Settlement Invoices?"
-msgstr "¿Registra Documentos Tributarios Electrónicos?"
+msgstr "¿Registra Facturas de Liquidación?"
 
 #. module: l10n_cl_invoice
 #: model:ir.ui.menu,name:l10n_cl_invoice.menu_action_sii_responsability
