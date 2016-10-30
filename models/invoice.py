@@ -64,7 +64,7 @@ class AccountInvoiceTax(models.Model):
             else:
                 super(AccountInvoiceTax, tax)._compute_base_amount()
 
-class account_invoice(models.Model):
+class AccountInvoice(models.Model):
     _inherit = "account.invoice"
 
     def _compute_amount(self):
@@ -73,7 +73,7 @@ class account_invoice(models.Model):
             amount_total = 0
             for line in inv.invoice_line_ids:
                 taxes = line.invoice_line_tax_ids.with_context(
-                    {'round':False}).compute_all(
+                    {'round': False}).compute_all(
                         line.price_unit, currency, line.quantity,
                         product=line.product_id, partner=inv.partner_id,
                         discount=line.discount)

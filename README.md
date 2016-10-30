@@ -15,7 +15,7 @@ http://blancomartin.cl/blog/novedades-odoo-1
 
 
 This module helps you configure the journals using the correct taxable documents.
-Include a wizard to configure stubs needed in invoicing process, using the 
+Include a wizard to configure stubs needed in invoicing process, using the
 SII (Chilean tax entity) official codification systems.
 
 It also allows you to generate records in Odoo of electronic invoices vouchers.
@@ -28,9 +28,8 @@ process, according to partner VAT responsability.
 ### This module is inspired, and we took lots of pieces of code from l10n_ar_invoice (argentinean localization).
 Thanks to 'Odoo Argentina' community, and Specially to Juan Scarafía for years of dedication an ideas over this module !
 
-<p>
-<img alt="Logo BMYA" src="http://crm.blancomartin.cl/index.php?entryPoint=image&name=c82ab43f-e8dd-b2fa-25ff-56017f69d116" />
-</p>
+
+![Logo BMyA](https://blancomartin.cl/website/image/ir.attachment/9711_e6d1eea/datas)
 **Blanco Martin & Asociados EIRL** - http://blancomartin.cl
 
 # l10n_cl_invoice
@@ -53,8 +52,6 @@ También permite registrar en Odoo los comprobantes de documentos electrónicos 
 ## Créditos
 ### Este módulo fué inspirado, y hemos tomado muchas porciones de código de l10n_ar_invoice (localización argentina).
 ¡ Un agradecimiento a la comunidad 'Odoo Argentina', y en especial a Juan Scarafía por años de dedicación e ideas puestas en este módulo !
-<p>
-<img alt="Logo BMYA" src="http://crm.blancomartin.cl/index.php?entryPoint=image&name=c82ab43f-e8dd-b2fa-25ff-56017f69d116" />
-</p>
-**Blanco Martin & Asociados EIRL** - http://blancomartin.cl
 
+![Logo BMyA](https://blancomartin.cl/website/image/ir.attachment/9711_e6d1eea/datas)
+**Blanco Martin & Asociados EIRL** - http://blancomartin.cl
