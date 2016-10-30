@@ -41,4 +41,16 @@
       <field name="refund_account_id" ref="l10n_cl.231"/>
       <field name="account_id" ref="l10n_cl.231"/>
     </record>
+    <record id="especifico_compra" model="account.tax.template">
+      <field name="chart_template_id" ref="l10n_cl.cl_chart_template"/>
+      <field name="sii_code">29</field>
+      <field name="name">Específico Compra</field>
+      <field name="description">Especifico</field>
+      <field name="amount">63</field>
+      <field name="amount_type">percent</field>
+      <field name="type_tax_use">purchase</field>
+      <field name="no_rec" eval="True" />
+      <field name="refund_account_id" ref="l10n_cl.231"/>
+      <field name="account_id" ref="l10n_cl.231"/>
+    </record>
 </openerp>

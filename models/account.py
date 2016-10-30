@@ -7,12 +7,13 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-class sii_tax_code(models.Model):
+class SiiTaxCode(models.Model):
     _inherit = 'account.tax'
 
     sii_code = new_fields.Integer('SII Code')
     sii_type = new_fields.Selection([ ('A','Anticipado'),('R','Retención')], string="Tipo de impuesto para el SII")
     retencion = new_fields.Float(string="Valor retención", default=0.00)
+    no_rec = new_fields.Boolean(string="Es No Recuperable")#esto es distinto al código no recuperable, depende del manejo de recuperación de impuesto
 
     @api.v8
     def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, discount=None):
@@ -117,7 +118,7 @@ class sii_tax_code(models.Model):
                 neto = int(base_amount / (1 + self.amount / 100))
             iva = base_amount - neto
             return iva
-        return super(sii_tax_code,self)._compute_amount(base_amount, price_unit, quantity, product, partner)
+        return super(SiiTaxCode,self)._compute_amount(base_amount, price_unit, quantity, product, partner)
 
 class account_move(models.Model):
     _inherit = "account.move"
