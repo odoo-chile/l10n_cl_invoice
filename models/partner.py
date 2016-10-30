@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from openerp import fields, models, api
+from openerp import fields, models, api, _
 import re
 
 
@@ -50,7 +50,17 @@ class res_partner(models.Model):
             document_number = (
                 re.sub('[^1234567890Kk]', '', str(
                     self.document_number))).zfill(9).upper()
-            self.vat = 'CL%s' % document_number
+            vat = 'CL%s' % document_number
+            exist = self.env['res.partner'].search([('vat','=', vat)], limit=1)
+            if exist:
+                self.vat = self.document_number = ""
+                return {
+                    'warning': {
+                        'title': "El Rut ya está siendo usado",
+                        'message': _("El usuario %s está utilizando este documento" ) % exist.name,
+                        }
+                    }
+            self.vat = vat
             self.document_number = '%s.%s.%s-%s' % (
                 document_number[0:2], document_number[2:5],
                 document_number[5:8], document_number[-1])

@@ -16,17 +16,23 @@ class AccountInvoiceLine(models.Model):
 
     @api.one
     @api.depends('price_unit', 'discount', 'invoice_line_tax_ids', 'quantity',
-        'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id', 'invoice_id.company_id')
+        'product_id', 'invoice_id.partner_id', 'invoice_id.currency_id',
+        'invoice_id.company_id')
     def _compute_price(self):
         super(AccountInvoiceLine,self)._compute_price()
         currency = self.invoice_id and self.invoice_id.currency_id or None
         price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
         taxes = False
         if self.invoice_line_tax_ids.price_include:
-            taxes = self.invoice_line_tax_ids.compute_all(price, currency, self.quantity, product=self.product_id, partner=self.invoice_id.partner_id)
-        self.price_tax_included = taxes['total_included'] if (taxes and taxes['total_included'] > self.quantity * price) else self.quantity * price
+            taxes = self.invoice_line_tax_ids.compute_all(
+                price, currency, self.quantity, product=self.product_id,
+                partner=self.invoice_id.partner_id)
+        self.price_tax_included = taxes['total_included'] if (
+            taxes and taxes['total_included'] > self.quantity * price) else \
+            self.quantity * price
 
-    price_tax_included = fields.Monetary(string='Amount', readonly=True, compute='_compute_price')
+    price_tax_included = fields.Monetary(
+        string='Amount', readonly=True, compute='_compute_price')
 
 class AccountInvoiceTax(models.Model):
     _inherit = "account.invoice.tax"
@@ -37,9 +43,13 @@ class AccountInvoiceTax(models.Model):
                 base = 0.0
                 for line in tax.invoice_id.invoice_line_ids:
                     if tax.tax_id in line.invoice_line_tax_ids:
-                        base += (line.price_tax_included / (1 + tax.tax_id.amount / 100)) # valor sin redondeo
-                        base += sum((line.invoice_line_tax_ids.filtered(lambda t: t.include_base_amount) - tax.tax_id).mapped('amount'))
-                tax.base = tax.invoice_id.currency_id.round(base)# se redondea global
+                        base += (
+                            line.price_tax_included / (
+                                1 + tax.tax_id.amount / 100))
+                        base += sum((line.invoice_line_tax_ids.filtered(
+                            lambda t: t.include_base_amount) - tax.tax_id).
+                                    mapped('amount'))
+                tax.base = tax.invoice_id.currency_id.round(base)
             else:
                 super(AccountInvoiceTax,tax)._compute_base_amount()
 
@@ -52,7 +62,10 @@ class account_invoice(models.Model):
             amount_total = 0
             for line in inv.invoice_line_ids:
                 price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                taxes = line.invoice_line_tax_ids.with_context({'round':False}).compute_all(price, currency, line.quantity, product=line.product_id, partner=inv.partner_id)
+                taxes = line.invoice_line_tax_ids.with_context(
+                    {'round':False}).compute_all(
+                    price, currency, line.quantity, product=line.product_id,
+                    partner=inv.partner_id)
                 if taxes and taxes['total_included'] > 0:
                     amount_total += taxes['total_included']
                 else:
@@ -64,8 +77,10 @@ class account_invoice(models.Model):
             amount_total_company_signed = inv.amount_total
             amount_untaxed_signed = inv.amount_untaxed
             if inv.currency_id and inv.currency_id != inv.company_id.currency_id:
-                amount_total_company_signed = inv.currency_id.compute(inv.amount_total, inv.company_id.currency_id)
-                amount_untaxed_signed = inv.currency_id.compute(inv.amount_untaxed, inv.company_id.currency_id)
+                amount_total_company_signed = inv.currency_id.compute(
+                    inv.amount_total, inv.company_id.currency_id)
+                amount_untaxed_signed = inv.currency_id.compute(
+                    inv.amount_untaxed, inv.company_id.currency_id)
             sign = inv.type in ['in_refund', 'out_refund'] and -1 or 1
             inv.amount_total_company_signed = amount_total_company_signed * sign
             inv.amount_total_signed = inv.amount_total * sign
@@ -106,7 +121,8 @@ class account_invoice(models.Model):
         result = []
         for inv in self:
             result.append(
-                (inv.id, "%s %s" % (inv.document_number or TYPES[inv.type], inv.name or '')))
+                (inv.id, "%s %s" % (
+                    inv.document_number or TYPES[inv.type], inv.name or '')))
         return result
 
     @api.model
@@ -142,7 +158,8 @@ class account_invoice(models.Model):
                         ('journal_id', '=', inv.journal_id.id),
                         '|', ('sii_document_class_id.document_letter_id',
                               'in', letter_ids),
-                             ('sii_document_class_id.document_letter_id', '=', False)]
+                             ('sii_document_class_id.document_letter_id',
+                              '=', False)]
 
                     # If document_type in context we try to serch specific document
                     # document_type = self._context.get('document_type', False)
@@ -184,7 +201,9 @@ class account_invoice(models.Model):
         boleta_ids = [
             self.env.ref('l10n_cl_invoice.dc_bzf_f_dtn').id,
             self.env.ref('l10n_cl_invoice.dc_b_f_dtm').id]
-        if self.sii_document_class_id not in boleta_ids and self.partner_id.document_number == '' or self.partner_id.document_number == '0':
+        if self.sii_document_class_id not in boleta_ids \
+                and self.partner_id.document_number == '' \
+                or self.partner_id.document_number == '0':
             raise Warning(_("""The customer/supplier does not have a VAT \
 defined. The type of invoicing document you selected requires you tu settle \
 a VAT."""))
@@ -265,7 +284,10 @@ a VAT."""))
     formated_vat = fields.Char(
         string='Responsability',
         related='commercial_partner_id.formated_vat',)
-    iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
+    iva_uso_comun = fields.Boolean(
+        string="Uso Común", readonly=True, states={
+            'draft': [('readonly', False)]})
+    # solamente para compras tratamiento del iva
     no_rec_code = fields.Selection([
                     ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
                     ('2','Facturas de proveedores registrados fuera de plazo.'),
@@ -273,7 +295,8 @@ a VAT."""))
                     ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
                     ('9','Otros.')],
                     string="Código No recuperable",
-                    readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
+                    readonly=True, states={'draft': [('readonly', False)]})
+                    # @TODO select 1 automático si es emisor 2Categoría
 
     document_number = fields.Char(
         compute='_get_document_number',
@@ -288,15 +311,22 @@ a VAT."""))
         related='journal_id.use_documents',
         string='Use Documents?',
         readonly=True)
-    referencias = fields.One2many('account.invoice.referencias','invoice_id', readonly=True, states={'draft': [('readonly', False)]})
-    forma_pago = fields.Selection([('1','Contado'),('2','Crédito'),('3','Gratuito')],string="Forma de pago", readonly=True, states={'draft': [('readonly', False)]},
-                    default='1')
+    referencias = fields.One2many(
+        'account.invoice.referencias','invoice_id', readonly=True, states={
+            'draft': [('readonly', False)]})
+    forma_pago = fields.Selection(
+        [('1','Contado'),
+         ('2','Crédito'),
+         ('3','Gratuito')], string="Forma de pago", readonly=True,
+        states={'draft': [('readonly', False)]},
+        default='1')
     contact_id = fields.Many2one('res.partner', string="Contacto")
 
     @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
     def _check_reference(self):
-        if self.type in ['out_invoice', 'out_refund'] and self.reference and self.state == 'open':
+        if self.type in ['out_invoice', 'out_refund'] \
+                and self.reference and self.state == 'open':
             domain = [('type', 'in', ('out_invoice', 'out_refund')),
                       # ('reference', '=', self.reference),
                       ('document_number', '=', self.document_number),
@@ -307,7 +337,8 @@ a VAT."""))
             invoice_ids = self.search(domain)
             if invoice_ids:
                 raise Warning(
-                    _('Supplier Invoice Number must be unique per Supplier and Company!'))
+                    _('Supplier Invoice Number must be unique per Supplier '
+                      'and Company!'))
 
     _sql_constraints = [
         ('number_supplier_invoice_number',
