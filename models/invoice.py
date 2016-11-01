@@ -70,7 +70,7 @@ class account_invoice(models.Model):
                     amount_total += line.price_tax_included
 
             inv.amount_tax = sum(line.amount for line in inv.tax_line_ids)
-            bases = sum(line.base for line in inv.tax_line_ids)
+            bases = sum(line.price_subtotal for line in inv.invoice_line_ids)
             inv.amount_untaxed = bases
             inv.amount_total = inv.amount_untaxed + inv.amount_tax
             amount_total_company_signed = inv.amount_total
