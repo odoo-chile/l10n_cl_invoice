@@ -16,9 +16,11 @@ class sii_point_of_sale(models.Model):
             code = str(self.number)
         self.code = code
     name = fields.Char(
-        'Name', required=True)
+        'SII Branch Code', default='---',
+        help="This number should match the one given to you by SII")
     number = fields.Integer(
-        'Number', required=True)
+        'Number',
+        required=True)
     code = fields.Char(
         'Code', compute="_get_code")
     company_id = fields.Many2one(
