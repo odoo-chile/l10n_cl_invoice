@@ -17,7 +17,8 @@ class sii_point_of_sale(models.Model):
         self.code = code
     name = fields.Char(
         'SII Branch Code', default='---',
-        help="This number should match the one given to you by SII")
+        help="""This number should match the one given to you by SII. Leave as \
+--- if you use centralized document emission""")
     number = fields.Integer(
         'Number',
         required=True)
@@ -39,8 +40,9 @@ class sii_document_class(models.Model):
     name = fields.Char(
         'Name', size=120)
     doc_code_prefix = fields.Char(
-        'Document Code Prefix', help="Prefix for Documents Codes on Invoices \
-        and Account Moves. For eg. 'FAC' will build 'FAC 00001' Document Number")
+        'Document Code Prefix',
+        help="Prefix for Documents Codes on Invoices and Account Moves. For \
+eg. 'FAC' will build 'FAC 00001' Document Number")
     code_template = fields.Char(
         'Code Template for Journal')
     sii_code = fields.Integer(

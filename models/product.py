@@ -2,7 +2,7 @@
 from openerp import fields, models, api
 
 
-class productTemplate(models.Model):
+class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
     # Esto no sé que es... estaba hecho, pero estaba sin aplicar
@@ -30,7 +30,7 @@ class productTemplate(models.Model):
             self.taxes_id = False
 
 
-class productProduct(models.Model):
+class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     is_exempt = fields.Boolean(
