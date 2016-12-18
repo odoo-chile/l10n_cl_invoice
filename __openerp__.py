@@ -48,6 +48,7 @@ Incluye:
         'data/country.xml',
         'data/sii.concept_type.csv',
         'data/decimal_precision_data.xml',
+        'wizard/journal_config_wizard_view.xml',
         'views/company_view.xml',
         'views/country_view.xml',
         'views/sii_document_letter_view.xml',
@@ -71,7 +72,6 @@ Incluye:
         'security/l10n_cl_invoice_security.xml',
         'data/res.currency.csv',
         #'views/sii_menuitem.xml',
-        'wizard/journal_config_wizard_view.xml',
     ],
     'version': '8.1.0.0',
 }
