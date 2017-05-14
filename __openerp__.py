@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-{   'active': False,
+{
+    'active': False,
     'author': u'Blanco Martín & Asociados',
     'website': 'http://blancomartin.cl',
     'category': 'Localization/Chile',
@@ -9,6 +10,7 @@
     'depends': [   
         'account',
         'account_accountant',
+        'l10n_cl_chart',
         'l10n_cl_base_rut',
         'l10n_cl_partner_activities',
         'decimal_precision'
@@ -49,6 +51,7 @@ Incluye:
         'data/country.xml',
         'data/sii.concept_type.csv',
         'data/decimal_precision_data.xml',
+        #'data/account.fiscal.position.csv',
         'views/company_view.xml',
         'views/country_view.xml',
         'views/sii_document_letter_view.xml',
