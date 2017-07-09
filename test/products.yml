@@ -30,6 +30,6 @@
 
 - Create product with IVA 19%
 - !record {model: product.product, id: prod_iva21 }:
-    name: Producto IVA 21%
+    name: Producto IVA 19%
     taxes_id: !ref {model: account.tax, search: "[('name','=','01003005:V')]"}
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

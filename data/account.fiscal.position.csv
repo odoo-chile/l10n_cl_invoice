@@ -1,0 +1,2 @@
+"id","name","tax_ids/tax_src_id/id"
+TAX_EXEMPT,"Operaciones Exentas","account.tax.template.ITAX_19,account.tax.template.OTAX_19"
