@@ -29,17 +29,6 @@ Incluye:
     'installable': True,
     'license': 'AGPL-3',
     'name': u'Chile - Sistema de apoyo a la facturación',
-    'test': [   
-#        'test/products.yml',
-#        'test/partners.yml',
-#        'test/com_ri1.yml',
-#        'test/com_ri2.yml',
-#        'test/com_rm1.yml',
-#        'test/inv_ri2ri.yml',
-#        'test/inv_rm2ri.yml',
-#        'test/inv_ri2rm.yml',
-#        'test/bug_1042944.yml'
-        ],
     'data': [
         'data/document_type.xml',
         'security/l10n_cl_invoice_security.xml',
