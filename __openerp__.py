@@ -4,10 +4,7 @@
     'author': u'Blanco Martín & Asociados',
     'website': 'http://blancomartin.cl',
     'category': 'Localization/Chile',
-    'demo_xml': [
-       # 'data/partner_demo.xml',
-      ],
-    'depends': [   
+    'depends': [
         'account',
         'account_accountant',
         'l10n_cl_chart',
