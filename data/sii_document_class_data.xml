@@ -1,0 +1,563 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+<record id="dc_I_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_i"/>
+    <field name="sii_code" eval="29"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FAI </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FAI </field>
+    <field name="name">Factura de Inicio</field>
+    <field name="code_template">FAI</field>
+</record>
+
+<record id="dc_a_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="30"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FAC </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACTURA </field>
+    <field name="name">Factura</field>
+    <field name="code_template">FVA</field>
+</record>
+
+<record id="dc_y_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_c"/>
+    <field name="sii_code" eval="32"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FNA </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">F-EXENTA </field>
+    <field name="name">Factura de Ventas y Servicios no Afectos o Exentos de IVA</field>
+    <field name="code_template">FVE</field>
+</record>
+
+<record id="dc_a_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="33"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">FAC </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACTURA </field>
+    <field name="name">Factura Electrónica</field>
+    <field name="code_template">FVA</field>
+</record>
+
+<record id="dc_y_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_c"/>
+    <field name="sii_code" eval="34"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">FNA </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">F-EXENTA </field>
+    <field name="name">Factura no Afecta o Exenta Electrónica</field>
+    <field name="code_template">FVE</field>
+</record>
+
+<record id="dc_l_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_l"/>
+    <field name="sii_code" eval="40"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FAL </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">L-FACTURAM </field>
+    <field name="name">Liquidación Factura</field>
+    <field name="code_template">LFM</field>
+</record>
+
+<record id="dc_l_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_l"/>
+    <field name="sii_code" eval="43"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">FAL </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">L-FACTURAE </field>
+    <field name="name">Liquidación Factura Electrónica</field>
+    <field name="code_template">LFE</field>
+</record>
+
+<record id="dc_fc_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="45"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FAC </field>
+    <field name="document_type">invoice_in</field>
+    <field name="report_name">FACTURA </field>
+    <field name="name">Factura de Compra</field>
+    <field name="code_template">FCA</field>
+</record>
+
+<record id="dc_fc_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="46"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">FAC </field>
+    <field name="document_type">invoice_in</field>
+    <field name="report_name">FACTURA </field>
+    <field name="name">Factura de Compra Electrónica</field>
+    <field name="code_template">FCA</field>
+</record>
+
+<record id="dc_nd_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="55"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">N/D </field>
+    <field name="document_type">debit_note</field>
+    <field name="report_name">NOTA DE DEBITO </field>
+    <field name="name">Nota de Débito</field>
+    <field name="code_template">NDA</field>
+</record>
+
+<record id="dc_nd_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="56"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">N/D </field>
+    <field name="document_type">debit_note</field>
+    <field name="report_name">NOTA DE DEBITO </field>
+    <field name="name">Nota de Débito Electrónica</field>
+    <field name="code_template">NDA</field>
+</record>
+
+<record id="dc_nc_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="60"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">N/C </field>
+    <field name="document_type">credit_note</field>
+    <field name="report_name">NOTA DE CREDITO </field>
+    <field name="name">Nota de Crédito</field>
+    <field name="code_template">NCA</field>
+</record>
+
+<record id="dc_nc_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="61"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">N/C </field>
+    <field name="document_type">credit_note</field>
+    <field name="report_name">NOTA DE CREDITO </field>
+    <field name="name">Nota de Crédito Electrónica</field>
+    <field name="code_template">NCA</field>
+</record>
+
+<record id="dc_s_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_s"/>
+    <field name="sii_code" eval="108"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">REG </field>
+    <field name="report_name">SOL REGISTRO </field>
+    <field name="name">SRF Solicitud de Registro de Factura</field>
+    <field name="code_template">SRF</field>
+</record>
+
+<record id="dc_ftf_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="901"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FAC </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACTURA </field>
+    <field name="name">Factura de ventas a empresas del territorio preferencial ( Res. Ex. N° 1057</field>
+    <field name="code_template">FVA</field>
+</record>
+
+<record id="dc_din_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_d"/>
+    <field name="sii_code" eval="914"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">DIN </field>
+    <field name="report_name">DEC ING </field>
+    <field name="name">Declaración de Ingreso (DIN)</field>
+    <field name="code_template">DIN</field>
+</record>
+
+<record id="dc_dizf_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_d"/>
+    <field name="sii_code" eval="911"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">DIN </field>
+    <field name="report_name">DEC ING </field>
+    <field name="name">Declaración de Ingreso a Zona Franca Primaria</field>
+    <field name="code_template">DIN</field>
+</record>
+
+<record id="dc_ftt_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="904"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FTR </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACT TR </field>
+    <field name="name">Factura de Traspaso</field>
+    <field name="code_template">FTT</field>
+</record>
+
+<record id="dc_frr_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="905"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FRX </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACT RX </field>
+    <field name="name">Factura de Reexpedición</field>
+    <field name="code_template">FRR</field>
+</record>
+
+<record id="dc_bzf_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_b"/>
+    <field name="sii_code" eval="906"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">BZF </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BOLETA ZF </field>
+    <field name="name">Boletas Venta Módulos ZF (todas)</field>
+    <field name="code_template">BZF</field>
+</record>
+
+<record id="dc_fzf_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_a"/>
+    <field name="sii_code" eval="907"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FZF </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">FACTURA ZF </field>
+    <field name="name">Facturas Venta Módulo ZF (todas)</field>
+    <field name="code_template">FZF</field>
+</record>
+
+<record id="dc_tca_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_t"/>
+    <field name="sii_code" eval="500"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">TCA </field>
+    <field name="report_name">TC-A </field>
+    <field name="name">Ajuste aumento Tipo de Cambio (código 500)</field>
+    <field name="code_template">TCA</field>
+</record>
+
+<record id="dc_tcd_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_t"/>
+    <field name="sii_code" eval="501"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">TCD </field>
+    <field name="report_name">TC-D </field>
+    <field name="name">Ajuste disminución Tipo de Cambio (código 501)</field>
+    <field name="code_template">TCD</field>
+</record>
+
+<record id="dc_b_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_b"/>
+    <field name="sii_code" eval="35"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">BOL </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BOL </field>
+    <field name="name">Boleta de Venta</field>
+    <field name="code_template">BOL </field>
+</record>
+
+<record id="dc_b_e_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_b"/>
+    <field name="sii_code" eval="38"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">BEX</field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BEX </field>
+    <field name="name">Boleta exenta</field>
+    <field name="code_template">BEX</field>
+</record>
+
+<record id="dc_b_f_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_b"/>
+    <field name="sii_code" eval="39"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">BEL</field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BEL </field>
+    <field name="name">Boleta Electrónica</field>
+    <field name="code_template">BEL</field>
+</record>
+
+<record id="dc_b_e_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_b"/>
+    <field name="sii_code" eval="41"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">BXE</field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BXE </field>
+    <field name="name">Boleta Exenta Electrónica</field>
+    <field name="code_template">BXE</field>
+</record>
+
+<record id="dc_m_f_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_m"/>
+    <field name="sii_code" eval="70"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">BHO </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BHO </field>
+    <field name="name">Boleta de Honorarios</field>
+    <field name="code_template">BHO</field>
+</record>
+
+<record id="dc_m_d_dtn" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="document_letter_id" ref="dl_m"/>
+    <field name="sii_code" eval="71"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">BHE </field>
+    <field name="document_type">invoice</field>
+    <field name="report_name">BHE </field>
+    <field name="name">Boleta de Honorarios Electrónica</field>
+    <field name="code_template">BHE</field>
+</record>
+
+<record id="dc_oc" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="801"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">OC</field>
+    <field name="report_name">OC </field>
+    <field name="name">Orden de Compra</field>
+    <field name="code_template">OC</field>
+</record>
+
+<record id="dc_li" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="103"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">LIQ</field>
+    <field name="report_name">LIQ </field>
+    <field name="name">Liquidación</field>
+    <field name="code_template">LIQ</field>
+</record>
+
+<record id="dc_gd" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="50"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">GD</field>
+    <field name="document_type">stock_voucher</field>
+    <field name="report_name">GD </field>
+    <field name="name">Guía de Despacho</field>
+    <field name="code_template">GD</field>
+</record>
+
+<record id="dc_gd_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="52"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">GDE</field>
+    <field name="document_type">stock_voucher</field>
+    <field name="report_name">GDE </field>
+    <field name="name">Guía de Despacho Electrónica</field>
+    <field name="code_template">GDE</field>
+</record>
+
+<record id="dc_fe_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="110"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">FCXE</field>
+    <field name="report_name">FCXE </field>
+    <field name="name">Factura de Exportación Electrónica</field>
+    <field name="code_template">FCXE</field>
+</record>
+
+<record id="dc_ndex_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="111"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">NDXE</field>
+    <field name="report_name">NDXE </field>
+    <field name="name">Nota de Débito de Exportación Electrónica</field>
+    <field name="code_template">NDXE</field>
+</record>
+
+<record id="dc_ncex_dte" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="112"/>
+    <field name="dte" eval="True"/>
+    <field name="doc_code_prefix">NCXE</field>
+    <field name="report_name">NCXE </field>
+    <field name="name">Nota de Crédito de Exportación Electrónica</field>
+    <field name="code_template">NCXE</field>
+</record>
+
+<record id="dc_ndp" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="802"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">NP</field>
+    <field name="report_name">NP </field>
+    <field name="name">Nota de pedido</field>
+    <field name="code_template">NP</field>
+</record>
+
+<record id="dc_cont" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="803"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">CONT</field>
+    <field name="report_name">CONT </field>
+    <field name="name">Contrato</field>
+    <field name="code_template">CONT</field>
+</record>
+
+<record id="dc_resol" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="804"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">RES</field>
+    <field name="report_name">RES </field>
+    <field name="name">Resolución</field>
+    <field name="code_template">RES</field>
+</record>
+
+<record id="dc_prchc" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="805"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">PCHC</field>
+    <field name="report_name">PCHC </field>
+    <field name="name">Proceso ChileCompra</field>
+    <field name="code_template">PCHC</field>
+</record>
+
+<record id="dc_fichc" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="806"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">FCHC</field>
+    <field name="report_name">FCHC </field>
+    <field name="name">Ficha ChileCompra</field>
+    <field name="code_template">FCHC</field>
+</record>
+
+<record id="dc_dus" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="807"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">DUS</field>
+    <field name="report_name">DUS </field>
+    <field name="name">DUS</field>
+    <field name="code_template">DUS</field>
+</record>
+
+<record id="dc_bl_cemb" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="808"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">B/L</field>
+    <field name="report_name">B/L </field>
+    <field name="name">B/L (Conocimiento de embarque)</field>
+    <field name="code_template">B/L</field>
+</record>
+
+<record id="dc_awb" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="809"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">AWB</field>
+    <field name="report_name">AWB </field>
+    <field name="name">AWB (Air Will Bill)</field>
+    <field name="code_template">AWB</field>
+</record>
+
+<record id="dc_mic_dta" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="810"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">MDT</field>
+    <field name="report_name">MDT </field>
+    <field name="name">MIC/DTA</field>
+    <field name="code_template">MDT</field>
+</record>
+
+<record id="dc_cpor" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="811"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">CPR</field>
+    <field name="report_name">CPR </field>
+    <field name="name">Carta de Porte</field>
+    <field name="code_template">CPR</field>
+</record>
+
+<record id="dc_res_sna" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="812"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">RSN</field>
+    <field name="report_name">RSN </field>
+    <field name="name">Resolución del SNA donde califica Servicios de Exportación</field>
+    <field name="code_template">RSN</field>
+</record>
+
+<record id="dc_pasap" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="813"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">PSP</field>
+    <field name="report_name">PSP </field>
+    <field name="name">Pasaporte</field>
+    <field name="code_template">PSP</field>
+</record>
+
+<record id="dc_cd_bol" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="814"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">CRTD</field>
+    <field name="report_name">CRTD </field>
+    <field name="name">Certificado de Depósito Bolsa Prod. Chile.</field>
+    <field name="code_template">CRTD</field>
+</record>
+
+<record id="dc_vp_pren" model="sii.document_class">
+    <field name="active" eval="True"/>
+    <field name="sii_code" eval="815"/>
+    <field name="dte" eval="False"/>
+    <field name="doc_code_prefix">VLPR</field>
+    <field name="report_name">VLPR </field>
+    <field name="name">Vale de Prenda Bolsa Prod. Chile</field>
+    <field name="code_template">VLPR</field>
+</record>
+
+
+    </data>
+</openerp>

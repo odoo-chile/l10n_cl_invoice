@@ -89,25 +89,29 @@ class account_invoice(models.Model):
             printed_tax_id = [x.id for x in invoice.tax_line]
 
             vat_amount = sum([
-                x.tax_amount for x in invoice.tax_line if x.tax_code_id.parent_id.name == 'IVA'])
+                x.tax_amount for x in invoice.tax_line if\
+                x.tax_code_id.parent_id.name == 'IVA'])
 
             other_taxes_amount = sum(
                 line.other_taxes_amount for line in invoice.invoice_line)
             exempt_amount = sum(
                 line.exempt_amount for line in invoice.invoice_line)
-            vat_tax_id = [
-                x.id for x in invoice.tax_line if x.tax_code_id.parent_id.name == 'IVA']
+            vat_tax_ids = [
+                x.id for x in invoice.tax_line if\
+                x.tax_code_id.parent_id.name == 'IVA']
 
             if not invoice.vat_discriminated:
                 printed_amount_untaxed = sum(
-                    line.printed_price_subtotal for line in invoice.invoice_line)
-                printed_tax_id = [
-                    x.id for x in invoice.tax_line if x.tax_code_id.parent_id.name != 'IVA']
+                    line.printed_price_subtotal for line in\
+                    invoice.invoice_line)
+                printed_tax_ids = [
+                    x.id for x in invoice.tax_line if\
+                    x.tax_code_id.parent_id.name != 'IVA']
             res[invoice.id] = {
                 'printed_amount_untaxed': printed_amount_untaxed,
-                'printed_tax_id': printed_tax_id,
+                'printed_tax_ids': printed_tax_ids,
                 'printed_amount_tax': invoice.amount_total - printed_amount_untaxed,
-                'vat_tax_id': vat_tax_id,
+                'vat_tax_ids': vat_tax_ids,
                 'vat_amount': vat_amount,
                 'other_taxes_amount': other_taxes_amount,
                 'exempt_amount': exempt_amount,
@@ -123,7 +127,7 @@ class account_invoice(models.Model):
             _printed_prices,
             type='float', digits_compute=dp.get_precision('Account'),
             string='Subtotal', multi='printed',),
-        'printed_tax_id': old_fields.function(
+        'printed_tax_ids': old_fields.function(
             _printed_prices,
             type='one2many', relation='account.invoice.tax', string='Tax',
             multi='printed'),
@@ -131,7 +135,7 @@ class account_invoice(models.Model):
             _printed_prices, type='float',
             digits_compute=dp.get_precision('Account'),
             string='Exempt Amount', multi='printed'),
-        'vat_tax_id': old_fields.function(
+        'vat_tax_ids': old_fields.function(
             _printed_prices,
             type='one2many', relation='account.invoice.tax',
             string='VAT Taxes', multi='printed'),
@@ -151,15 +155,13 @@ class account_invoice(models.Model):
         states={'draft': [('readonly', False)]},
         compute=_get_available_issuer_turns)
 
-
     @api.multi
     def name_get(self):
         TYPES = {
             'out_invoice': _('Invoice'),
             'in_invoice': _('Supplier Invoice'),
             'out_refund': _('Refund'),
-            'in_refund': _('Supplier Refund'),
-        }
+            'in_refund': _('Supplier Refund')}
         result = []
         for inv in self:
             result.append(
@@ -200,17 +202,21 @@ class account_invoice(models.Model):
                     ('journal_id', '=', self.journal_id.id),
                     '|', ('sii_document_class_id.document_letter_id',
                           'in', letter_ids),
-                         ('sii_document_class_id.document_letter_id', '=', False)]
+                         ('sii_document_class_id.document_letter_id',
+                          '=', False)]
 
                 # If document_type in context we try to serch specific document
                 document_type = self._context.get('document_type', False)
                 if document_type:
                     document_classes = self.env[
                         'account.journal.sii_document_class'].search(
-                        domain + [('sii_document_class_id.document_type', '=', document_type)])
+                        domain + [('sii_document_class_id.document_type',
+                                   '=', document_type)])
                     if document_classes.ids:
-                        # revisar si hay condicion de exento, para poner como primera alternativa estos
-                        document_class_id = self.get_document_class_default(document_classes)
+                        # revisar si hay condicion de exento, para poner como
+                        # primera alternativa estos
+                        document_class_id = self.get_document_class_default(
+                            document_classes)
 
                 # For domain, we search all documents
                 document_classes = self.env[
@@ -219,9 +225,11 @@ class account_invoice(models.Model):
 
                 # If not specific document type found, we choose another one
                 if not document_class_id and document_class_ids:
-                    # revisar si hay condicion de exento, para poner como primera alternativa estos
-                    # to-do: manejar más fino el documento por defecto.
-                    document_class_id = self.get_document_class_default(document_classes)
+                    # revisar si hay condicion de exento, para poner
+                    # como primera alternativa estos
+                    # todo: manejar más fino el documento por defecto.
+                    document_class_id = self.get_document_class_default(
+                        document_classes)
         self.available_journal_document_class_ids = document_class_ids
         self.journal_document_class_id = document_class_id
 
@@ -246,8 +254,11 @@ class account_invoice(models.Model):
         'company_id.invoice_vat_discrimination_default',)
     def get_vat_discriminated(self):
         vat_discriminated = False
-        # agregarle una condicion: si el giro es afecto a iva, debe seleccionar factura, de lo contrario boleta (to-do)
-        if self.sii_document_class_id.document_letter_id.vat_discriminated or self.company_id.invoice_vat_discrimination_default == 'discriminate_default':
+        # agregarle una condicion: si el giro es afecto a iva, debe
+        # seleccionar factura, de lo contrario boleta (to-do)
+        if self.sii_document_class_id.document_letter_id.vat_discriminated \
+                or self.company_id.invoice_vat_discrimination_default \
+                        == 'discriminate_default':
             vat_discriminated = True
         self.vat_discriminated = vat_discriminated
 
@@ -293,11 +304,11 @@ class account_invoice(models.Model):
         related='commercial_partner_id.formated_vat',)
     iva_uso_comun = fields.Boolean(string="Uso Común", readonly=True, states={'draft': [('readonly', False)]}) # solamente para compras tratamiento del iva
     no_rec_code = fields.Selection([
-                    ('1','Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
-                    ('2','Facturas de proveedores registrados fuera de plazo.'),
-                    ('3','Gastos rechazados.'),
-                    ('4','Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
-                    ('9','Otros.')],
+                    ('1', 'Compras destinadas a IVA a generar operaciones no gravados o exentas.'),
+                    ('2', 'Facturas de proveedores registrados fuera de plazo.'),
+                    ('3', 'Gastos rechazados.'),
+                    ('4', 'Entregas gratuitas (premios, bonificaciones, etc.) recibidos.'),
+                    ('9', 'Otros.')],
                     string="Código No recuperable",
                     readonly=True, states={'draft': [('readonly', False)]})# @TODO select 1 automático si es emisor 2Categoría
 
@@ -318,7 +329,8 @@ class account_invoice(models.Model):
     @api.one
     @api.constrains('supplier_invoice_number', 'partner_id', 'company_id')
     def _check_reference(self):
-        if self.type in ['out_invoice', 'out_refund'] and self.reference and self.state == 'open':
+        if self.type in ['out_invoice', 'out_refund'] and self.reference and\
+                        self.state == 'open':
             domain = [('type', 'in', ('out_invoice', 'out_refund')),
                       # ('reference', '=', self.reference),
                       ('document_number', '=', self.document_number),
@@ -329,7 +341,8 @@ class account_invoice(models.Model):
             invoice_ids = self.search(domain)
             if invoice_ids:
                 raise Warning(
-                    _('Supplier Invoice Number must be unique per Supplier and Company!'))
+                    _('Supplier Invoice Number must be unique per Supplier and \
+Company!'))
 
     _sql_constraints = [
         ('number_supplier_invoice_number',
@@ -349,11 +362,13 @@ class account_invoice(models.Model):
             # company that use this function
             # also if it has a reference number we use it (for example when
             # cancelling for modification)
-            if obj_inv.journal_document_class_id and not obj_inv.sii_document_number:
+            if obj_inv.journal_document_class_id and not \
+                    obj_inv.sii_document_number:
                 if invtype in ('out_invoice', 'out_refund'):
                     if not obj_inv.journal_document_class_id.sequence_id:
                         raise osv.except_osv(_('Error!'), _(
-                            'Please define sequence on the journal related documents to this invoice.'))
+                            'Please define sequence on the journal related\
+documents to this invoice.'))
                     sii_document_number = obj_sequence.next_by_id(
                         obj_inv.journal_document_class_id.sequence_id.id)
                 elif invtype in ('in_invoice', 'in_refund'):

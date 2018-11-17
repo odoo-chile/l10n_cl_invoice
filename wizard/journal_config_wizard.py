@@ -16,10 +16,10 @@ class account_journal_document_config(osv.osv_memory):
 
     _columns = {
         'debit_notes': fields.selection(
-            [('dont_use','Do not use'), ('own_sequence','Use')],
+            [('dont_use', 'Do not use'), ('own_sequence', 'Use')],
             string='Debit Notes', required=True, default='own_sequence'),
         'credit_notes': fields.selection(
-            [('own_sequence','Use')], string='Credit Notes', required=True,
+            [('own_sequence', 'Use')], string='Credit Notes', required=True,
             default='own_sequence'),
         'dte_register': fields.boolean(
             'Register Electronic Documents?', default=True, help="""

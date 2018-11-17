@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+<record id="TAX_EXEMPT" model="account.fiscal.position">
+    <field name="name">Operaciones Exentas</field>
+    <field name="tax_ids/tax_src_id" ref="account.tax.template.ITAX_19,account.tax.template.OTAX_19"/>
+</record>
+
+
+    </data>
+</openerp>

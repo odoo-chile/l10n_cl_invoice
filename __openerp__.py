@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-{   'active': False,
+{
+    'active': False,
     'author': u'Blanco Martín & Asociados',
     'website': 'http://blancomartin.cl',
     'category': 'Localization/Chile',
@@ -9,6 +10,7 @@
     'depends': [   
         'account',
         'account_accountant',
+        'l10n_cl_chart',
         'l10n_cl_base_rut',
         'l10n_cl_partner_activities',
         'decimal_precision'
@@ -42,12 +44,13 @@ Incluye:
         'data/document_type.xml',
         'security/l10n_cl_invoice_security.xml',
         'data/responsability.xml',
-        'data/sii.document_letter.csv',
-        'data/sii.document_class.csv',
+        'data/sii_document_letter_data.xml',
+        'data/sii_document_class_data.xml',
         'data/partner.xml',
         'data/country.xml',
         'data/sii.concept_type.csv',
         'data/decimal_precision_data.xml',
+        'wizard/journal_config_wizard_view.xml',
         'views/company_view.xml',
         'views/country_view.xml',
         'views/sii_document_letter_view.xml',
@@ -61,6 +64,7 @@ Incluye:
         'views/partner_view.xml',
         'views/journal_view.xml',
         'views/invoice_view.xml',
+        'views/product_view.xml',
         'views/account_move_view.xml',
         'views/account_move_line_view.xml',
         'views/config_view.xml',
@@ -69,8 +73,7 @@ Incluye:
         'security/ir.model.access.csv',
         'security/l10n_cl_invoice_security.xml',
         'data/res.currency.csv',
-        #'views/sii_menuitem.xml',
-        'wizard/journal_config_wizard_view.xml',
+        # 'views/sii_menuitem.xml',
     ],
     'version': '8.0.4.0',
 }
