@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+<record id="base.CLP" model="res.currency">
+    <field name="name">CLP</field>
+    <field name="sii_code">CLP</field>
+</record>
+
+<record id="base.AUD" model="res.currency">
+    <field name="name">AUD</field>
+    <field name="sii_code">AUD</field>
+</record>
+
+<record id="base.CAD" model="res.currency">
+    <field name="name">CAD</field>
+    <field name="sii_code">CAD</field>
+</record>
+
+<record id="base.GBP" model="res.currency">
+    <field name="name">GBP</field>
+    <field name="sii_code">GBP</field>
+</record>
+
+<record id="base.JPY" model="res.currency">
+    <field name="name">JPY</field>
+    <field name="sii_code">JPY</field>
+</record>
+
+<record id="base.MXN" model="res.currency">
+    <field name="name">MXN</field>
+    <field name="sii_code">MXN</field>
+</record>
+
+<record id="base.USD" model="res.currency">
+    <field name="name">USD</field>
+    <field name="sii_code">USD</field>
+</record>
+
+<record id="base.UYU" model="res.currency">
+    <field name="name">UYU</field>
+    <field name="sii_code">UYU</field>
+</record>
+
+<record id="base.VEF" model="res.currency">
+    <field name="name">VEF</field>
+    <field name="sii_code">VEF</field>
+</record>
+
+<record id="base.ARS" model="res.currency">
+    <field name="name">ARS</field>
+    <field name="sii_code">ARS</field>
+</record>
+
+<record id="base.EUR" model="res.currency">
+    <field name="name">EUR</field>
+    <field name="sii_code">EUR</field>
+</record>
+
+<record id="base.UTM" model="res.currency">
+    <field name="name">UTM</field>
+    <field name="sii_code">UTM</field>
+</record>
+
+<record id="base.UF" model="res.currency">
+    <field name="name">UF</field>
+    <field name="sii_code">UF</field>
+</record>
+

@@ -1,15 +1,15 @@
-id,sii_code
-base.CLP,CLP
-base.AUD,AUD
-base.CAD,CAD
-base.GBP,GBP
-base.JPY,JPY
-base.MXN,MXN
-base.USD,USD
-base.UYU,UYU
-base.VEF,VEF
-base.ARS,ARS
-base.EUR,EUR
+id,name,sii_code
+base.CLP,CLP,CLP
+base.AUD,AUD,AUD
+base.CAD,CAD,CAD
+base.GBP,GBP,GBP
+base.JPY,JPY,JPY
+base.MXN,MXN,MXN
+base.USD,USD,USD
+base.UYU,UYU,UYU
+base.VEF,VEF,VEF
+base.ARS,ARS,ARS
+base.EUR,EUR,EUR
 base.UTM,UTM,UTM
 base.UF,UF,UF
 

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+<record id="sii_concept_type_consumible" model="sii.concept_type">
+    <field name="sii_code" eval="1"/>
+    <field name="active" eval="True"/>
+    <field name="product_types">consu</field>
+    <field name="name">Consumible</field>
+</record>
+
+<record id="sii_concept_type_servicio" model="sii.concept_type">
+    <field name="sii_code" eval="2"/>
+    <field name="active" eval="True"/>
+    <field name="product_types">service</field>
+    <field name="name">Servicio</field>
+</record>
+
+<record id="sii_concept_type_mixto" model="sii.concept_type">
+    <field name="sii_code" eval="3"/>
+    <field name="active" eval="True"/>
+    <field name="product_types">consu,service</field>
+    <field name="name">Mixto</field>
+</record>
+
+
+    </data>
+</openerp>

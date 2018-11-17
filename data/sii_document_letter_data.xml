@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+<record id="dl_a" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">A</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVAE,res_IVARI,res_BH])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_b" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">B</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_CF,res_IVAE,res_BH])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="False"/>
+</record>
+
+<record id="dl_c" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">C</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVAE,res_IVARI,res_BH])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVAE,res_IVARI])]"/>
+    <field name="vat_discriminated" eval="False"/>
+</record>
+
+<record id="dl_m" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">M</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVAE,res_IVARI,res_BH])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_BH])]"/>
+    <field name="vat_discriminated" eval="False"/>
+</record>
+
+<record id="dl_e" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">E</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_EXT])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="False"/>
+</record>
+
+<record id="dl_x" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">X</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVAE,res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_i" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">I</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_s" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">S</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_d" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">D</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_t" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">T</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+<record id="dl_l" model="sii.document_letter">
+    <field name="active" eval="True"/>
+    <field name="name">L</field>
+    <field name="receptor_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="issuer_ids" eval="[(6, 0, [res_IVARI])]"/>
+    <field name="vat_discriminated" eval="True"/>
+</record>
+
+
+    </data>
+</openerp>
