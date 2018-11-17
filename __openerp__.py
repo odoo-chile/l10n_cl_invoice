@@ -62,7 +62,6 @@ Incluye:
         'security/ir.model.access.csv',
         'security/l10n_cl_invoice_security.xml',
         'data/res.currency.csv',
-        # 'views/sii_menuitem.xml',
     ],
     'version': '8.0.4.0',
 }
